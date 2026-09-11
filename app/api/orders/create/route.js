@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import connectDB from '@/config/db';
 import Product from '@/models/Product';
 import User from '@/models/User';
-import { ingest } from '@/config/ingest';
+import { inngest } from '@/config/inngest';
 
 export async function POST(request) {
     try {
@@ -38,7 +38,6 @@ export async function POST(request) {
         // Calculate amount using items
         let amount = await items.reduce(
             async (previousAmountPromise, item) => {
-
                 const previousAmount = await previousAmountPromise;
 
                 const product = await Product.findById(item.product);
@@ -49,20 +48,24 @@ export async function POST(request) {
                     );
                 }
 
-                return previousAmount +
-                    product.offerPrice * item.quantity;
+                return (
+                    previousAmount +
+                    product.offerPrice * item.quantity
+                );
             },
             Promise.resolve(0)
         );
 
         // Add 2% tax
-        amount = Math.floor(
-            (amount + amount * 0.02) * 100
-        ) / 100;
+        amount =
+            Math.floor(
+                (amount + amount * 0.02) * 100
+            ) / 100;
 
         // Create order event in Inngest
-        await ingest.send({
+        await inngest.send({
             name: 'order/created',
+
             data: {
                 userId,
                 address,
@@ -91,14 +94,15 @@ export async function POST(request) {
                 status: 200,
             }
         );
-
     } catch (error) {
         console.error('Create order error:', error);
 
         return NextResponse.json(
             {
                 success: false,
-                message: error.message || 'Something went wrong',
+                message:
+                    error.message ||
+                    'Something went wrong',
             },
             {
                 status: 500,
