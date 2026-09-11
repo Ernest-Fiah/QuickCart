@@ -17,10 +17,11 @@ const connectDB = async () => {
   if (!cache.promise) {
     const options = {
       bufferCommands: false,
+      dbName: "quickcart",
     };
 
     cache.promise = mongoose
-      .connect(`${process.env.MONGODB_URI}/quickcart`, options)
+      .connect(process.env.MONGODB_URI, options)
       .then((mongoose) => mongoose);
   }
 
