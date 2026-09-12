@@ -35,6 +35,9 @@ export async function POST(request) {
             );
         }
 
+        // Connect to MongoDB
+        await connectDB();
+
         // Calculate amount using items
         let amount = await items.reduce(
             async (previousAmountPromise, item) => {
@@ -76,8 +79,6 @@ export async function POST(request) {
         });
 
         // Clear user's cart
-        await connectDB();
-
         const user = await User.findById(userId);
 
         if (user) {
