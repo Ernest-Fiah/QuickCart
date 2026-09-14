@@ -13,7 +13,7 @@ export const AppContext = createContext();
 export const useAppContext = () => useContext(AppContext);
 
 export const AppContextProvider = ({ children }) => {
-  const currency = process.env.NEXT_PUBLIC_CURRENCY;
+  const currency = 'GH₵';
   const router = useRouter();
 
   const { user, isSignedIn } = useUser();

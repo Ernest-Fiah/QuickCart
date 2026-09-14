@@ -1,5 +1,6 @@
 
 'use client'
+
 import React, { useEffect, useState } from "react";
 import { assets } from "@/assets/assets";
 import Image from "next/image";
@@ -39,21 +40,74 @@ const ProductList = () => {
     }
   }
 
+  const deleteProduct = async (productId) => {
+
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this product?"
+    );
+
+    if (!confirmDelete) {
+      return;
+    }
+
+    try {
+      const token = await getToken();
+
+      const response = await fetch("/api/product/delete", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          productId,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+
+        setProducts((prevProducts) =>
+          prevProducts.filter(
+            (product) => product._id !== productId
+          )
+        );
+
+        alert("Product deleted successfully");
+
+      } else {
+        alert(data.message || "Failed to delete product");
+      }
+
+    } catch (error) {
+      console.error("Delete product error:", error);
+
+      alert("Failed to delete product");
+    }
+  }
+
   useEffect(() => {
     fetchSellerProduct();
   }, [])
 
   return (
     <div className="flex-1 min-h-screen flex flex-col justify-between">
-      {loading ? <Loading /> : <div className="w-full md:p-10 p-4">
-        <h2 className="pb-4 text-lg font-medium">All Product</h2>
 
-        <div className="flex flex-col items-center max-w-4xl w-full overflow-hidden rounded-md bg-white border border-gray-500/20">
+      {loading ? <Loading /> : <div className="w-full md:p-10 p-4">
+
+        <h2 className="pb-4 text-lg font-medium">
+          All Products
+        </h2>
+
+        <div className="flex flex-col items-center max-w-4xl w-full overflow-hidden rounded-md bg-white border border-black/10">
 
           <table className="table-fixed w-full overflow-hidden">
 
-            <thead className="text-gray-900 text-sm text-left">
+            <thead className="text-black text-sm text-left bg-gray-50">
+
               <tr>
+
                 <th className="w-2/3 md:w-2/5 px-4 py-3 font-medium truncate">
                   Product
                 </th>
@@ -69,20 +123,23 @@ const ProductList = () => {
                 <th className="px-4 py-3 font-medium truncate max-sm:hidden">
                   Action
                 </th>
+
               </tr>
+
             </thead>
 
             <tbody className="text-sm text-gray-500">
 
               {products.map((product, index) => (
+
                 <tr
                   key={product._id || index}
-                  className="border-t border-gray-500/20"
+                  className="border-t border-black/10"
                 >
 
                   <td className="md:px-4 pl-2 md:pl-4 py-3 flex items-center space-x-3 truncate">
 
-                    <div className="bg-gray-500/10 rounded p-2">
+                    <div className="bg-gray-100 rounded p-2">
 
                       <Image
                         src={product.image[0]}
@@ -94,44 +151,58 @@ const ProductList = () => {
 
                     </div>
 
-                    <span className="truncate w-full">
+                    <span className="truncate w-full text-black">
                       {product.name}
                     </span>
 
                   </td>
 
-                  <td className="px-4 py-3 max-sm:hidden">
+                  <td className="px-4 py-3 max-sm:hidden text-gray-600">
                     {product.category}
                   </td>
 
-                  <td className="px-4 py-3">
-                    ${product.offerPrice}
+                  <td className="px-4 py-3 text-black font-medium">
+                    GH₵{product.offerPrice}
                   </td>
 
                   <td className="px-4 py-3 max-sm:hidden">
 
-                    <button
-                      onClick={() =>
-                        router.push(`/product/${product._id}`)
-                      }
-                      className="flex items-center gap-1 px-1.5 md:px-3.5 py-2 bg-orange-600 text-white rounded-md"
-                    >
+                    <div className="flex items-center gap-2">
 
-                      <span className="hidden md:block">
-                        Visit
-                      </span>
+                      <button
+                        onClick={() =>
+                          router.push(`/product/${product._id}`)
+                        }
+                        className="flex items-center gap-1 px-1.5 md:px-3.5 py-2 bg-black text-white rounded-md hover:bg-gray-800 transition"
+                      >
 
-                      <Image
-                        className="h-3.5"
-                        src={assets.redirect_icon}
-                        alt="redirect_icon"
-                      />
+                        <span className="hidden md:block">
+                          Visit
+                        </span>
 
-                    </button>
+                        <Image
+                          className="h-3.5"
+                          src={assets.redirect_icon}
+                          alt="redirect_icon"
+                        />
+
+                      </button>
+
+                      <button
+                        onClick={() =>
+                          deleteProduct(product._id)
+                        }
+                        className="px-1.5 md:px-3.5 py-2 bg-black text-white rounded-md hover:bg-gray-800 transition"
+                      >
+                        Delete
+                      </button>
+
+                    </div>
 
                   </td>
 
                 </tr>
+
               ))}
 
             </tbody>
@@ -143,6 +214,7 @@ const ProductList = () => {
       </div>}
 
       <Footer />
+
     </div>
   );
 };

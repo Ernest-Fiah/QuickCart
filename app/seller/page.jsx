@@ -1,3 +1,4 @@
+
 'use client'
 
 import React, { useState } from "react";
@@ -13,7 +14,7 @@ const AddProduct = () => {
   const [files, setFiles] = useState([]);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [category, setCategory] = useState('Earphone');
+  const [category, setCategory] = useState('SUIT');
   const [price, setPrice] = useState('');
   const [offerPrice, setOfferPrice] = useState('');
 
@@ -55,7 +56,7 @@ const AddProduct = () => {
         setFiles([]);
         setName('');
         setDescription('');
-        setCategory('Earphone');
+        setCategory('SUIT');
         setPrice('');
         setOfferPrice('');
 
@@ -196,40 +197,61 @@ const AddProduct = () => {
               value={category}
             >
 
-            
-<option value="Suits">
-  Suits
-</option>
+              <option value="SUIT">
+                SUIT
+              </option>
 
-<option value="Shirts">
-  Shirts
-</option>
+              <option value="SHIRT">
+                SHIRT
+              </option>
 
-<option value="Trousers">
-  Trousers
-</option>
+              <option value="JACKET">
+                JACKET
+              </option>
 
-<option value="Office Wear">
-  Office Wear
-</option>
+              <option value="TROUSERS">
+                TROUSERS
+              </option>
 
-<option value="Casual Wear">
-  Casual Wear
-</option>
+              <option value="T-SHIRT">
+                T-SHIRT
+              </option>
 
-<option value="Traditional Wear">
-  Traditional Wear
-</option>
+              <option value="KNITWEAR">
+                KNITWEAR
+              </option>
 
-<option value="Shoes">
-  Shoes
-</option>
+              <option value="SWEATSHIRT">
+                SWEATSHIRT
+              </option>
 
-<option value="Accessories">
-  Accessories
-</option>
+              <option value="OUTERWEAR">
+                OUTERWEAR
+              </option>
 
+              <option value="SHOE">
+                SHOE
+              </option>
 
+              <option value="ACCESSORY">
+                ACCESSORY
+              </option>
+
+              <option value="TUXEDO">
+                TUXEDO
+              </option>
+
+              <option value="COMBINATIONS">
+                COMBINATIONS
+              </option>
+
+              <option value="NEW ARRIVALS">
+                NEW ARRIVALS
+              </option>
+
+              <option value="OUTLET">
+                OUTLET
+              </option>
 
             </select>
 
@@ -281,7 +303,7 @@ const AddProduct = () => {
 
         <button
           type="submit"
-          className="px-8 py-2.5 bg-orange-600 text-white font-medium rounded"
+          className="px-8 py-2.5 bg-black text-white font-medium rounded"
         >
           ADD
         </button>
@@ -295,4 +317,3 @@ const AddProduct = () => {
 };
 
 export default AddProduct;
-

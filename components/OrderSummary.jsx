@@ -13,12 +13,16 @@ const OrderSummary = () => {
     getCartAmount,
     getToken,
     user,
+    cartItems,
+    setCartItems,
   } = useAppContext();
 
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const [userAddresses, setUserAddresses] = useState([]);
+
+  const [paymentLoading, setPaymentLoading] = useState(false);
 
   const fetchUserAddresses = async () => {
     try {
@@ -61,7 +65,64 @@ const OrderSummary = () => {
   };
 
   const createOrder = async () => {
+    try {
 
+      if (!selectedAddress) {
+        return toast.error("Please select an address");
+      }
+
+      let cartItemsArray = Object.keys(cartItems).map((key) => ({
+        product: key,
+        quantity: cartItems[key],
+      }));
+
+      cartItemsArray = cartItemsArray.filter(
+        (item) => item.quantity > 0
+      );
+
+      if (cartItemsArray.length === 0) {
+        return toast.error("Cart is empty");
+      }
+
+      setPaymentLoading(true);
+
+      const token = await getToken();
+
+      const { data } = await axios.post(
+        "/api/paystack/initialize",
+        {
+          address: selectedAddress._id,
+          items: cartItemsArray,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (data.success) {
+        window.location.href = data.authorization_url;
+      } else {
+        setPaymentLoading(false);
+
+        toast.error(
+          data.message ||
+          "Unable to initialize payment"
+        );
+      }
+
+    } catch (error) {
+      console.error("Paystack payment error:", error);
+
+      setPaymentLoading(false);
+
+      toast.error(
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to initialize payment"
+      );
+    }
   };
 
   useEffect(() => {
@@ -230,12 +291,13 @@ const OrderSummary = () => {
 
       </div>
 
-      {/* Place Order */}
+      {/* Pay with Paystack */}
       <button
         onClick={createOrder}
-        className="w-full bg-orange-600 text-white py-3 mt-5 hover:bg-orange-700"
+        disabled={paymentLoading}
+        className="w-full bg-orange-600 text-white py-3 mt-5 hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        Place Order
+        {paymentLoading ? "Processing Payment..." : "Pay with Paystack"}
       </button>
 
     </div>
@@ -243,4 +305,3 @@ const OrderSummary = () => {
 };
 
 export default OrderSummary;
-

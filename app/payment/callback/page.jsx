@@ -1,0 +1,82 @@
+
+'use client';
+
+import React, { useEffect, useState } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import axios from "axios";
+import Loading from "@/components/Loading";
+
+const PaymentCallback = () => {
+
+    const searchParams = useSearchParams();
+    const router = useRouter();
+
+    const [loading, setLoading] = useState(true);
+    const [message, setMessage] = useState("Verifying your payment...");
+
+    useEffect(() => {
+
+        const verifyPayment = async () => {
+
+            const reference = searchParams.get("reference");
+
+            if (!reference) {
+                setMessage("Payment reference not found.");
+                setLoading(false);
+                return;
+            }
+
+            try {
+
+                const { data } = await axios.get(
+                    `/api/paystack/verify?reference=${reference}`
+                );
+
+                if (data.success) {
+                    setMessage("Payment successful!");
+
+                    setTimeout(() => {
+                        router.push("/order-placed");
+                    }, 2000);
+
+                } else {
+                    setMessage(
+                        data.message ||
+                        "Payment verification failed."
+                    );
+                    setLoading(false);
+                }
+
+            } catch (error) {
+
+                console.error(error);
+
+                setMessage(
+                    error.response?.data?.message ||
+                    "Unable to verify payment."
+                );
+
+                setLoading(false);
+            }
+        };
+
+        verifyPayment();
+
+    }, [searchParams, router]);
+
+    return (
+        <div className="min-h-screen flex items-center justify-center">
+            <div className="text-center">
+
+                {loading && <Loading />}
+
+                <h2 className="text-lg font-medium mt-5">
+                    {message}
+                </h2>
+
+            </div>
+        </div>
+    );
+};
+
+export default PaymentCallback;
