@@ -2,6 +2,7 @@
 "use client";
 
 import { Suspense, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import ProductCard from "@/components/ProductCard";
 import Footer from "@/components/Footer";
 import { useAppContext } from "@/context/AppContext";
@@ -80,41 +81,22 @@ const categoryMatches = (
 const AllProductsContent = () => {
     const { products } = useAppContext();
 
+    const searchParams = useSearchParams();
+
     const [category, setCategory] = useState("");
     const [subcategory, setSubcategory] = useState("");
     const [search, setSearch] = useState("");
     const [searchInput, setSearchInput] = useState("");
 
     useEffect(() => {
-        const updateFilters = () => {
-            const params = new URLSearchParams(
-                window.location.search
-            );
+        setCategory(searchParams.get("category") || "");
 
-            setCategory(params.get("category") || "");
-
-            setSubcategory(
-                params.get("subcategory") || ""
-            );
-
-            setSearch(params.get("search") || "");
-        };
-
-        updateFilters();
-
-        // Listen for browser navigation
-        window.addEventListener(
-            "popstate",
-            updateFilters
+        setSubcategory(
+            searchParams.get("subcategory") || ""
         );
 
-        return () => {
-            window.removeEventListener(
-                "popstate",
-                updateFilters
-            );
-        };
-    }, []);
+        setSearch(searchParams.get("search") || "");
+    }, [searchParams]);
 
     useEffect(() => {
         if (search && search !== "true") {
