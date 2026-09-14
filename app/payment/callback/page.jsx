@@ -1,7 +1,6 @@
-
 'use client';
 
-import React, { useEffect, useState } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import axios from "axios";
 import Loading from "@/components/Loading";
@@ -79,4 +78,12 @@ const PaymentCallback = () => {
     );
 };
 
-export default PaymentCallback;
+const PaymentCallbackPage = () => {
+    return (
+        <Suspense fallback={<Loading />}>
+            <PaymentCallback />
+        </Suspense>
+    );
+};
+
+export default PaymentCallbackPage;
