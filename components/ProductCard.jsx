@@ -77,6 +77,7 @@ const ProductCard = ({ product }) => {
                         alt={product?.name || "Morven product"}
                         width={800}
                         height={800}
+                        unoptimized
                         className="
                             h-full
                             w-full
@@ -333,4 +334,3 @@ const ProductCard = ({ product }) => {
 };
 
 export default ProductCard;
-

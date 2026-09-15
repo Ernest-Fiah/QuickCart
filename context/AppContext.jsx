@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
-import { useAuth, useUser } from "@clerk/nextjs";
+import { useUser, useAuth } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import toast from "react-hot-toast";
@@ -13,34 +13,43 @@ export const AppContext = createContext();
 export const useAppContext = () => useContext(AppContext);
 
 export const AppContextProvider = ({ children }) => {
-  const currency = 'GH₵';
+  const currency = "GH₵";
   const router = useRouter();
 
   const { user, isSignedIn } = useUser();
   const { getToken } = useAuth();
 
   const [products, setProducts] = useState([]);
+  const [productsLoading, setProductsLoading] = useState(true);
+
   const [userData, setUserData] = useState(false);
   const [isSeller, setIsSeller] = useState(false);
   const [cartItems, setCartItems] = useState({});
 
   const fetchProductData = async () => {
     try {
+      setProductsLoading(true);
+
       const { data } = await axios.get("/api/product/list");
 
       if (data.success) {
-        setProducts(data.products);
+        setProducts(data.products || []);
       } else {
         toast.error(data.message);
+        setProducts([]);
       }
     } catch (error) {
       console.error("Fetch product data error:", error);
+
+      setProducts([]);
 
       toast.error(
         error.response?.data?.message ||
           error.message ||
           "Failed to fetch products"
       );
+    } finally {
+      setProductsLoading(false);
     }
   };
 
@@ -87,13 +96,10 @@ export const AppContextProvider = ({ children }) => {
         cartData[itemId] = 1;
       }
 
-      // Update the UI immediately
       setCartItems(cartData);
 
-      // Get Clerk token
       const token = await getToken();
 
-      // Save cart to MongoDB
       const { data } = await axios.post(
         "/api/cart/update",
         {
@@ -132,13 +138,10 @@ export const AppContextProvider = ({ children }) => {
         cartData[itemId] = quantity;
       }
 
-      // Update the UI immediately
       setCartItems(cartData);
 
-      // Get Clerk token
       const token = await getToken();
 
-      // Save updated cart to MongoDB
       const { data } = await axios.post(
         "/api/cart/update",
         {
@@ -186,8 +189,7 @@ export const AppContextProvider = ({ children }) => {
       );
 
       if (itemInfo && cartItems[itemId] > 0) {
-        totalAmount +=
-          itemInfo.offerPrice * cartItems[itemId];
+        totalAmount += itemInfo.offerPrice * cartItems[itemId];
       }
     }
 
@@ -222,6 +224,7 @@ export const AppContextProvider = ({ children }) => {
     fetchUserData,
 
     products,
+    productsLoading,
     fetchProductData,
 
     cartItems,
