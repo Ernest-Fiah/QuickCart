@@ -30,7 +30,7 @@ const OtherProductCard = ({ product, currency }) => (
         <div className="aspect-[4/5] overflow-hidden bg-[#f6f5f2]">
             {product.image?.[0] ? (
                 <Image unoptimized src={product.image[0]} width={380} height={475} alt={product.name || "Morven product"}
-                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.045]" />
+                    className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-[1.025]" />
             ) : (
                 <span className="flex h-full items-center justify-center text-xs text-gray-400">Image unavailable</span>
             )}
