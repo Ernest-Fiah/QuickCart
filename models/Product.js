@@ -34,6 +34,8 @@ const ProductSchema = new mongoose.Schema({
     },
 
     availableSizes: { type: [String], default: [] },
+    isActive: { type: Boolean, default: true },
+    collectionSourceKey: { type: String, default: undefined },
 
     category: {
         type: String,
@@ -45,6 +47,8 @@ const ProductSchema = new mongoose.Schema({
         required: true
     }
 });
+
+ProductSchema.index({ userId: 1, collectionSourceKey: 1 }, { unique: true, partialFilterExpression: { collectionSourceKey: { $type: 'string' } } });
 
 const Product = mongoose.models.Product || mongoose.model('Product', ProductSchema);
 
