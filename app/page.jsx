@@ -6,255 +6,390 @@ import Link from "next/link";
 import Footer from "@/components/Footer";
 import { useAppContext } from "@/context/AppContext";
 
-// Both existing Morven navbars come from app/layout.js, not from this page.
-const formatMoney = (value, symbol) =>
-  Number.isFinite(Number(value))
-    ? symbol + Number(value).toLocaleString("en-GH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-    : "Enquire for price";
+// The two existing Morven navbars are rendered in app/layout.js.
+// This page recreates the compact marketplace layout UNDER those navbars.
 
-const popularCategories = [
-  "SUIT", "SHIRT", "JACKET", "TROUSERS", "T-SHIRT", "KNITWEAR",
-  "SWEATSHIRT", "OUTERWEAR", "SHOE", "ACCESSORY", "TUXEDO",
+const ORANGE = "#ff6a00";
+const DISPLAY_CATEGORIES = [
+  "SUIT", "SHIRT", "TROUSERS", "JACKET", "T-SHIRT",
+  "SHOE", "ACCESSORY", "KNITWEAR", "TUXEDO", "OUTERWEAR",
 ];
 
-const CategoryIcon = ({ name }) => (
-  <span aria-hidden="true" className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-[#fff4eb] text-[#ed681f]">
-    {({ SUIT: "◆", SHIRT: "▣", JACKET: "◈", TROUSERS: "▥",
-      SHOE: "◉", ACCESSORY: "✦", TUXEDO: "◇" })[name] || "▦"}
-  </span>
+const formatPrice = (price, symbol) => {
+  const value = Number(price);
+  if (!Number.isFinite(value)) return "Enquire for price";
+  return symbol + value.toLocaleString("en-GH", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+};
+
+const SearchIcon = () => (
+  <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+    strokeWidth="1.8" className="h-4 w-4 shrink-0">
+    <circle cx="10.5" cy="10.5" r="6.5" />
+    <path d="m15.5 15.5 5 5" />
+  </svg>
 );
 
-const StoreProductCard = ({ product, currency }) => (
+const Chevron = () => (
+  <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+    strokeWidth="1.9" className="h-3 w-3 shrink-0">
+    <path d="m9 5 7 7-7 7" />
+  </svg>
+);
+
+const CategorySymbol = ({ value }) => {
+  const icons = {
+    SUIT: "♧", SHIRT: "▤", TROUSERS: "▥", JACKET: "◇",
+    "T-SHIRT": "▧", SHOE: "◉", ACCESSORY: "✧",
+    KNITWEAR: "▦", TUXEDO: "◆", OUTERWEAR: "◈",
+  };
+  return <span aria-hidden="true" className="w-4 shrink-0 text-center text-[13px] text-[#7d7771]">
+    {icons[value] || "·"}
+  </span>;
+};
+
+const CatalogCard = ({ product, currency }) => (
   <Link href={"/product/" + product._id}
-    className="group min-w-0 overflow-hidden rounded-[5px] border border-[#eceae7] bg-white p-2 transition duration-200 hover:border-[#f8aa7f] hover:shadow-[0_7px_22px_rgba(0,0,0,0.08)]">
-    <div className="relative aspect-[4/4.6] overflow-hidden rounded-[3px] bg-[#f3f2f0]">
+    className="group block min-w-0 overflow-hidden rounded-[4px] border border-[#ececec] bg-white p-[5px] transition-colors hover:border-[#ffad7d] hover:shadow-[0_3px_12px_rgba(0,0,0,0.07)]">
+    <div className="relative aspect-square w-full overflow-hidden rounded-[3px] bg-[#f4f4f4]">
       {product.image?.[0] ? (
-        <Image unoptimized src={product.image[0]} width={350} height={405}
-          alt={product.name || "Morven menswear"} loading="lazy"
-          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.045]" />
+        <Image
+          unoptimized
+          src={product.image[0]}
+          width={330}
+          height={330}
+          alt={product.name || "Morven clothing"}
+          loading="lazy"
+          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.045]"
+        />
       ) : (
-        <div className="flex h-full items-center justify-center text-xs text-[#9f9a93]">Image unavailable</div>
+        <div className="flex h-full w-full items-center justify-center text-[10px] text-[#aaa]">
+          Image unavailable
+        </div>
       )}
-      <span className="absolute bottom-2 left-2 rounded-[3px] bg-white/95 px-2 py-1 text-[9px] font-semibold uppercase tracking-wider text-[#4c443e]">
+      <span className="absolute bottom-1.5 left-1.5 rounded-full border border-white/80 bg-white/90 px-[5px] py-[2px] text-[8px] font-semibold tracking-[0.04em] text-[#50483f]">
         Morven
       </span>
     </div>
-    <p className="mt-2.5 line-clamp-2 min-h-[37px] text-[11px] font-medium leading-[1.5] text-[#24221f] sm:text-[12px]">
-      {product.name}
-    </p>
-    <p className="mt-1.5 text-[14px] font-bold leading-none tracking-tight text-[#26221e] sm:text-[15px]">
-      {formatMoney(product.offerPrice, currency)}
-    </p>
-    {Number(product.price) > Number(product.offerPrice) && (
-      <p className="mt-1 text-[10px] text-[#88817a] line-through">{formatMoney(product.price, currency)}</p>
-    )}
-    <p className="mt-2 truncate text-[9px] uppercase tracking-[0.09em] text-[#9a9189]">{product.category}</p>
+    <div className="px-[2px] pb-[4px] pt-[5px]">
+      <p className="line-clamp-2 min-h-[29px] text-[10px] font-normal leading-[14px] text-[#333333] sm:text-[11px]">
+        {product.name}
+      </p>
+      <p className="mt-1 truncate text-[12px] font-bold leading-[16px] tracking-[-0.015em] text-[#1c1c1c] sm:text-[13px]">
+        {formatPrice(product.offerPrice, currency)}
+      </p>
+      {Number(product.price) > Number(product.offerPrice) && (
+        <p className="mt-0.5 truncate text-[9px] leading-3 text-[#999] line-through">
+          {formatPrice(product.price, currency)}
+        </p>
+      )}
+      <p className="mt-[3px] truncate text-[9px] leading-3 text-[#777]">
+        {product.category || "Morven Collection"}
+      </p>
+    </div>
   </Link>
+);
+
+const QuickTile = ({ title, subtitle, product, category, onSelect, orange = false }) => (
+  <button
+    type="button"
+    onClick={() => onSelect(category)}
+    className={
+      "group relative flex h-[174px] min-w-0 flex-col overflow-hidden rounded-[5px] border p-[9px] text-left transition-colors " +
+      (orange
+        ? "border-[#ffd2b8] bg-gradient-to-br from-[#ffeadc] via-[#ffaf71] to-[#ff6a00]"
+        : "border-[#ececec] bg-[#fafafa] hover:border-[#ffad7d]")
+    }
+  >
+    <span className={"relative z-10 line-clamp-1 text-[11px] font-bold leading-4 " +
+      (orange ? "text-[#ee5700]" : "text-[#333]")}>
+      {title}
+    </span>
+    <span className={"relative z-10 mt-[2px] line-clamp-1 text-[9px] " +
+      (orange ? "text-[#a85124]" : "text-[#999]")}>
+      {subtitle}
+    </span>
+    {product?.image?.[0] ? (
+      <Image
+        unoptimized
+        src={product.image[0]}
+        alt={product.name || title}
+        width={220}
+        height={220}
+        loading="lazy"
+        className="mx-auto mt-2 h-[95px] w-[100%] max-w-[175px] object-contain transition-transform group-hover:scale-[1.045]"
+      />
+    ) : (
+      <span className="mt-6 text-[11px] text-[#b5afa9]">Browse Morven</span>
+    )}
+    {orange && (
+      <span className="absolute bottom-2 right-2 rounded-full bg-[#f56907] px-3 py-1.5 text-[10px] font-semibold text-white shadow-sm">
+        View more
+      </span>
+    )}
+  </button>
 );
 
 export default function Home() {
   const { products, productsLoading, currency } = useAppContext();
+  const [input, setInput] = useState("");
   const [search, setSearch] = useState("");
-  const [query, setQuery] = useState("");
-  const [category, setCategory] = useState("All products");
-  const [limit, setLimit] = useState(48);
+  const [category, setCategory] = useState("");
+  const [view, setView] = useState("products");
+  const [visible, setVisible] = useState(120);
 
-  const catalog = useMemo(() => Array.isArray(products) ? products.filter((item) => item?._id) : [], [products]);
+  const catalog = useMemo(() => (
+    Array.isArray(products) ? products.filter((item) => item?._id) : []
+  ), [products]);
+
   const categories = useMemo(() => {
-    const fromCatalog = [...new Set(catalog.map((item) => String(item.category || "").trim()).filter(Boolean))];
-    return [...new Set([...popularCategories, ...fromCatalog])];
+    const available = [...new Set(catalog.map((item) => String(item.category || "").trim()))]
+      .filter(Boolean);
+    return [
+      ...DISPLAY_CATEGORIES.filter((item) => available.some(
+        (name) => name.toLowerCase() === item.toLowerCase()
+      )),
+      ...available.filter((item) => !DISPLAY_CATEGORIES.includes(item.toUpperCase())),
+    ];
   }, [catalog]);
+
+  const findCategoryItem = (name) => (
+    catalog.find((item) =>
+      String(item.category || "").toUpperCase() === name &&
+      item.image?.[0]
+    ) || catalog.find((item) => item.image?.[0])
+  );
+
+  const tiles = [
+    { title: "Browse Morven", subtitle: "Explore new additions", category: "", product: catalog[0] },
+    { title: "Keep looking for", subtitle: "Premium suits & sets", category: "SUIT", product: findCategoryItem("SUIT") },
+    { title: "Explore styles", subtitle: "Shirts & accessories", category: "SHIRT", product: findCategoryItem("SHIRT") },
+    { title: "Featured products", subtitle: "Discover our selection", category: "", product: findCategoryItem("JACKET"), orange: true },
+  ];
+
   const filtered = useMemo(() => {
-    const categoryFilter = category.toLowerCase();
-    const word = query.trim().toLowerCase();
-    return catalog.filter((item) =>
-      (category === "All products" || String(item.category || "").toLowerCase() === categoryFilter) &&
-      (!word || [item.name, item.category, item.description].some((text) => String(text || "").toLowerCase().includes(word)))
-    );
-  }, [catalog, query, category]);
-  const categoryPreview = categories
-    .map((name) => ({
-      name, first: catalog.find((item) => String(item.category).toLowerCase() === name.toLowerCase())
-    }))
-    .filter((entry) => entry.first)
-    .slice(0, 4);
+    const phrase = search.trim().toLowerCase();
+    let items = catalog.filter((item) => {
+      const matchesCategory = !category ||
+        String(item.category || "").toLowerCase() === category.toLowerCase();
+      const matchesSearch = !phrase ||
+        [item.name, item.description, item.category].some((field) =>
+          String(field || "").toLowerCase().includes(phrase)
+        );
+      return matchesCategory && matchesSearch;
+    });
+    if (view === "new") {
+      items = [...items].sort((a, b) => Number(b.date || 0) - Number(a.date || 0));
+    }
+    return items;
+  }, [catalog, category, search, view]);
+
+  const setFilter = (nextCategory) => {
+    setCategory(nextCategory);
+    setSearch("");
+    setInput("");
+    setVisible(120);
+    document.getElementById("morven-product-grid")?.scrollIntoView({
+      behavior: "smooth", block: "start",
+    });
+  };
 
   const submitSearch = (event) => {
     event.preventDefault();
-    setQuery(search);
-    setLimit(48);
-    document.getElementById("morven-products")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    setSearch(input);
+    setCategory("");
+    setVisible(120);
+    document.getElementById("morven-product-grid")?.scrollIntoView({
+      behavior: "smooth", block: "start",
+    });
   };
-  const selectCategory = (value) => {
-    setCategory(value);
-    setLimit(48);
+
+  const selectTab = (nextView) => {
+    setView(nextView);
+    setCategory("");
+    setSearch("");
+    setInput("");
+    setVisible(120);
+    if (nextView === "collections") {
+      document.getElementById("morven-category-row")?.scrollIntoView({
+        behavior: "smooth", block: "center",
+      });
+    }
+    if (nextView === "new") {
+      document.getElementById("morven-product-grid")?.scrollIntoView({
+        behavior: "smooth", block: "start",
+      });
+    }
   };
 
   return (
     <>
-      <div className="min-h-screen bg-[#fbfaf9] text-[#2a2724]">
-        <div className="mx-auto max-w-[1510px] px-3 pb-20 pt-4 sm:px-5 lg:px-8">
-          {/* Alibaba-inspired search area, below the TWO existing navbars. */}
-          <section className="mx-auto max-w-[960px] pt-2 text-center">
-            <div className="flex items-center justify-center gap-3 text-[12px] font-semibold sm:text-[13px]">
-              <span className="border-b-2 border-[#ef6c22] pb-3 text-[#eb671e]">Products</span>
-              <span className="pb-3 text-[#a8a19a]">/</span>
-              <span className="pb-3">Morven Ghana Collection</span>
-            </div>
-            <form role="search" onSubmit={submitSearch}
-              className="mx-auto mt-2 flex h-[49px] w-full items-center gap-1 rounded-full border-2 border-[#f26717] bg-white p-1 shadow-[0_4px_20px_rgba(242,103,23,0.07)]">
-              <svg aria-hidden="true" className="ml-3 h-5 w-5 shrink-0 text-[#9b928a]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
-                <circle cx="11" cy="11" r="7" /><path d="m20 20-4-4" />
-              </svg>
-              <input type="search" value={search} onChange={(event) => setSearch(event.target.value)}
-                placeholder="Find suits, shirts, trousers, shoes and accessories"
+      <div className="min-h-screen bg-[#f7f7f7] text-[#252525]">
+        {/* The site-wide Navbar and FashionNavbar are intentionally NOT repeated here. */}
+        <div className="mx-auto max-w-[1510px] px-[10px] pb-16 pt-[5px] sm:px-4 lg:px-6">
+          {/* Compact centered marketplace tabs, like the reference screenshot. */}
+          <div className="flex h-[37px] items-center justify-center gap-4 text-[12px] font-bold sm:gap-7 sm:text-[14px]">
+            <button type="button" onClick={() => selectTab("discover")}
+              className={view === "discover" ? "text-[#f66a00]" : "text-[#333] hover:text-[#f66a00]"}>
+              Discover
+            </button>
+            <span className="text-[#e5e5e5]">|</span>
+            <button type="button" onClick={() => selectTab("products")}
+              className={view === "products" ? "text-[#ff6a00]" : "text-[#333] hover:text-[#ff6a00]"}>
+              Products
+            </button>
+            <span className="text-[#e5e5e5]">|</span>
+            <button type="button" onClick={() => selectTab("collections")}
+              className={view === "collections" ? "text-[#ff6a00]" : "text-[#333] hover:text-[#ff6a00]"}>
+              Collections
+            </button>
+            <span className="text-[#e5e5e5]">|</span>
+            <button type="button" onClick={() => selectTab("new")}
+              className={view === "new" ? "text-[#ff6a00]" : "text-[#333] hover:text-[#ff6a00]"}>
+              New Arrivals
+            </button>
+          </div>
+
+          {/* The small orange-outlined search card is a key part of the reference. */}
+          <form onSubmit={submitSearch} role="search"
+            className="mx-auto mt-2 w-full max-w-[830px] rounded-[7px] border-2 border-[#ff812a] bg-white p-[7px] shadow-[0_2px_9px_rgba(255,106,0,0.10)]">
+            <div className="flex h-[35px] items-center gap-[8px]">
+              <span className="ml-[5px] text-[#858585]"><SearchIcon /></span>
+              <input
+                type="search"
+                value={input}
+                onChange={(event) => setInput(event.target.value)}
+                placeholder="What are you looking for?"
                 aria-label="Search Morven products"
-                className="h-full min-w-0 flex-1 border-0 bg-transparent px-2 text-[12px] outline-none placeholder:text-[#9a938c] sm:text-[13px]" />
+                className="h-full w-full min-w-0 flex-1 border-none bg-transparent text-[12px] text-[#333] outline-none placeholder:text-[#999]"
+              />
               <button type="submit"
-                className="h-full shrink-0 rounded-full bg-[#f26717] px-6 text-[12px] font-semibold text-white hover:bg-[#d95812] sm:px-9">
+                className="h-[30px] shrink-0 rounded-full bg-[#ff6a00] px-[21px] text-[11px] font-bold text-white hover:bg-[#e65e00]">
                 Search
               </button>
-            </form>
-            <div className="mt-3 flex flex-wrap justify-center gap-x-4 gap-y-1 text-[10px] text-[#8c837a]">
-              <span>Popular searches:</span>
+            </div>
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-[#f3f3f3] pt-[6px] text-[9px] text-[#777]">
+              <span className="font-semibold text-[#999]">Popular searches</span>
               {["SUIT", "SHIRT", "TROUSERS", "SHOE"].map((name) => (
-                <button key={name} type="button" onClick={() => { selectCategory(name); setQuery(""); setSearch(""); }}
-                  className="hover:text-[#f26717]">{name.toLowerCase()}</button>
+                <button type="button" key={name}
+                  onClick={() => setFilter(name)}
+                  className="text-[#555] hover:text-[#ff6a00]">
+                  {name.toLowerCase()}
+                </button>
               ))}
             </div>
-          </section>
+          </form>
 
-          <div className="my-7 grid grid-cols-1 divide-y border-y border-[#e9e5e0] bg-white py-4 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+          {/* Three narrow feature strips; do not invent supplier ratings or sales statistics. */}
+          <div className="mt-9 grid grid-cols-1 divide-y border-y border-[#eeeeee] bg-white py-[5px] sm:grid-cols-3 sm:divide-x sm:divide-y-0">
             {[
-              ["🇬🇭", "Morven Ghana", "Discover our menswear collection"],
-              ["✓", "Paystack checkout", "Pay securely with the existing payment flow"],
-              ["▣", "Shop by category", "Browse suits, shirts, footwear and more"],
+              ["🇬🇭", "Morven Ghana", "Menswear collections in Ghana"],
+              ["✦", "Paystack checkout", "Pay with the existing secure payment flow"],
+              ["▣", "Suits, shirts and more", "Explore products from the Morven catalog"],
             ].map(([symbol, title, description]) => (
-              <div key={title} className="flex items-center gap-3 px-4 py-3 sm:px-5">
-                <span className="text-xl text-[#f26717]">{symbol}</span>
-                <div>
-                  <h2 className="text-[12px] font-semibold">{title}</h2>
-                  <p className="mt-1 text-[10px] leading-5 text-[#918980]">{description}</p>
+              <div key={title} className="flex min-w-0 items-center gap-3 px-3 py-[6px] sm:px-5">
+                <span className="text-[19px] leading-none text-[#ff6a00]">{symbol}</span>
+                <div className="min-w-0">
+                  <h2 className="truncate text-[11px] font-semibold text-[#333]">{title}</h2>
+                  <p className="mt-[2px] truncate text-[9px] text-[#8b8b8b]">{description}</p>
                 </div>
               </div>
             ))}
           </div>
 
-          <section className="grid gap-3 lg:grid-cols-[215px_minmax(0,1fr)]">
-            <aside className="rounded-md border border-[#ece8e2] bg-white p-3 lg:row-span-2">
-              <h2 className="mb-2 border-b border-[#eeeae5] px-2 pb-3 text-[13px] font-semibold">All categories</h2>
-              <div className="flex max-h-[210px] flex-wrap gap-1 overflow-y-auto lg:max-h-none lg:flex-col lg:flex-nowrap">
-                <button type="button" onClick={() => selectCategory("All products")}
-                  className={"rounded-md px-3 py-2 text-left text-[11px] transition " +
-                    (category === "All products" ? "bg-[#fff1e8] font-semibold text-[#ec6518]" : "hover:bg-[#f9f8f6]")}>
-                  All products
-                </button>
-                {categories.map((name) => (
-                  <button key={name} type="button" onClick={() => selectCategory(name)}
-                    className={"flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-[11px] transition " +
-                      (category === name ? "bg-[#fff1e8] font-semibold text-[#ec6518]" : "hover:bg-[#f9f8f6]")}>
-                    <CategoryIcon name={name} />
-                    <span className="flex-1">{name}</span>
-                    <span className="hidden text-[#afa59c] lg:inline">›</span>
+          {/* Screenshot-style row: 1 compact categories panel + 4 product tiles. */}
+          <section id="morven-category-row"
+            aria-label="Browse product categories"
+            className="mt-[13px] grid grid-cols-2 gap-[8px] sm:grid-cols-5">
+            <div className="col-span-2 h-[174px] overflow-hidden rounded-[5px] border border-[#ececec] bg-white p-[8px] sm:col-span-1">
+              <button type="button" onClick={() => setFilter("")}
+                className="mb-[5px] flex w-full items-center justify-between border-b border-[#eeeeee] pb-[7px] text-left text-[11px] font-semibold text-[#333] hover:text-[#ff6a00]">
+                <span>All Categories</span><Chevron />
+              </button>
+              <div className="max-h-[130px] space-y-[1px] overflow-y-auto">
+                {(categories.length ? categories : DISPLAY_CATEGORIES).slice(0, 8).map((name) => (
+                  <button type="button" key={name} onClick={() => setFilter(name)}
+                    className={"flex w-full items-center gap-[5px] rounded-[3px] px-[3px] py-[3px] text-left text-[10px] leading-[15px] hover:bg-[#fff3e9] " +
+                      (category === name ? "bg-[#fff1e8] text-[#ff6a00]" : "text-[#5e5e5e]")}>
+                    <CategorySymbol value={name} />
+                    <span className="min-w-0 flex-1 truncate">{name}</span>
+                    <Chevron />
                   </button>
                 ))}
-              </div>
-              <Link href="/all-products" className="mt-4 block border-t border-[#eeeae5] px-2 pt-3 text-[11px] font-medium text-[#f26717]">
-                Explore full collection →
-              </Link>
-            </aside>
-
-            <div className="min-w-0 space-y-3">
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                {categoryPreview.map(({ name, first }) => (
-                  <button key={name} type="button" onClick={() => selectCategory(name)}
-                    className="group min-w-0 rounded-md border border-[#ebe7e1] bg-white p-2 text-left transition hover:border-[#efaa7e]">
-                    <p className="mb-2 truncate text-[11px] font-semibold">{name}</p>
-                    <div className="aspect-[4/3] overflow-hidden bg-[#f7f5f3]">
-                      <Image unoptimized src={first.image?.[0]} width={260} height={190} alt={name}
-                        className="h-full w-full object-cover transition group-hover:scale-105" />
-                    </div>
-                    <span className="mt-2 inline-block text-[10px] text-[#ee681e]">Shop category →</span>
-                  </button>
-                ))}
-              </div>
-              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                <div className="rounded-md border border-[#ece8e2] bg-white p-4">
-                  <p className="text-[13px] font-semibold">New in Morven</p>
-                  <p className="mt-1 text-[10px] text-[#8e867e]">Browse recently added pieces</p>
-                  <div className="mt-3 flex gap-2">
-                    {catalog.slice(0, 3).filter((item) => item.image?.[0]).map((item) => (
-                      <Link key={item._id} href={"/product/" + item._id} className="w-1/3 overflow-hidden bg-[#f6f5f3]">
-                        <Image unoptimized src={item.image[0]} width={120} height={140} alt={item.name}
-                          className="aspect-square h-auto w-full object-cover" />
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-                <div className="rounded-md border border-[#ece8e2] bg-white p-4">
-                  <p className="text-[13px] font-semibold">Build your wardrobe</p>
-                  <p className="mt-1 text-[10px] text-[#8e867e]">Find outfits for work and occasions</p>
-                  <div className="mt-3 flex gap-2">
-                    {catalog.filter((item) => ["SUIT", "SHIRT", "SHOE", "TROUSERS"].includes(String(item.category).toUpperCase()))
-                      .slice(0, 3).filter((item) => item.image?.[0]).map((item) => (
-                        <Link key={item._id} href={"/product/" + item._id} className="w-1/3 overflow-hidden bg-[#f6f5f3]">
-                          <Image unoptimized src={item.image[0]} width={120} height={140} alt={item.name}
-                            className="aspect-square h-auto w-full object-cover" />
-                        </Link>
-                      ))}
-                  </div>
-                </div>
-                <div className="rounded-md border border-[#f9c49e] bg-[#fff0e3] p-5 sm:col-span-2 xl:col-span-1">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#d9611b]">Morven Ghana</p>
-                  <h3 className="mt-3 max-w-[220px] text-xl font-bold leading-tight">Discover your next signature look.</h3>
-                  <p className="mt-2 text-[11px] leading-5 text-[#8a6d5c]">Tailored pieces and everyday essentials in one place.</p>
-                  <Link href="/all-products" className="mt-5 inline-block rounded-full bg-[#f26717] px-5 py-2 text-[11px] font-semibold text-white">
-                    Browse collection
-                  </Link>
-                </div>
               </div>
             </div>
+            {tiles.map((tile) => (
+              <QuickTile key={tile.title} {...tile} onSelect={setFilter} />
+            ))}
           </section>
 
-          <section id="morven-products" className="scroll-mt-40 pt-8" aria-labelledby="morven-products-title">
-            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <h1 id="morven-products-title" className="text-[18px] font-bold leading-snug sm:text-[22px]">
-                  {query ? "Search results" : category === "All products" ? "Explore Morven Products" : category}
-                </h1>
-                <p className="mt-1 text-[11px] text-[#8d847b]">
-                  {filtered.length} {filtered.length === 1 ? "product" : "products"} {query && "matching “" + query + "”"}
+          {/* Dense, six-column feed starts directly under the category cards. */}
+          <section id="morven-product-grid" aria-label="Morven products"
+            className="scroll-mt-40 pt-[9px]">
+            {(category || search || view === "new") && (
+              <div className="mb-[8px] flex flex-wrap items-center justify-between gap-2 rounded-[4px] bg-white px-3 py-2 text-[11px]">
+                <p className="font-semibold">
+                  {search ? "Search results for “" + search + "”"
+                    : category || (view === "new" ? "New Arrivals" : "All Products")}
+                  <span className="ml-2 font-normal text-[#777]">({filtered.length} products)</span>
                 </p>
-              </div>
-              {(query || category !== "All products") && (
-                <button type="button" onClick={() => { setQuery(""); setSearch(""); selectCategory("All products"); }}
-                  className="rounded-full border border-[#dfd8d1] px-4 py-2 text-[11px] hover:border-[#f26717]">
+                <button type="button"
+                  onClick={() => { setSearch(""); setInput(""); setCategory(""); setView("products"); }}
+                  className="text-[#ff6a00] hover:underline">
                   Clear filters
                 </button>
-              )}
-            </div>
-            {filtered.length ? (
+              </div>
+            )}
+
+            {filtered.length > 0 ? (
               <>
-                <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-                  {filtered.slice(0, limit).map((item) => (
-                    <StoreProductCard key={item._id} product={item} currency={currency} />
+                <div className="grid grid-cols-2 gap-[7px] sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+                  {filtered.slice(0, visible).map((product) => (
+                    <CatalogCard key={product._id} product={product} currency={currency} />
                   ))}
                 </div>
-                {limit < filtered.length && (
-                  <div className="mt-9 text-center">
-                    <button type="button" onClick={() => setLimit((previous) => previous + 48)}
-                      className="rounded-full border border-[#292521] bg-white px-9 py-3 text-[12px] font-semibold transition hover:bg-[#292521] hover:text-white">
-                      Load more products
+                {visible < filtered.length && (
+                  <div className="mt-5 text-center">
+                    <button type="button" onClick={() => setVisible((n) => n + 120)}
+                      className="rounded-full border border-[#ddd] bg-white px-9 py-3 text-[12px] font-semibold hover:border-[#ff6a00] hover:text-[#ff6a00]">
+                      Show more products
                     </button>
                   </div>
                 )}
               </>
+            ) : productsLoading ? (
+              <div className="grid grid-cols-2 gap-[7px] sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+                {Array.from({ length: 12 }).map((_, index) => (
+                  <div key={index} className="animate-pulse rounded-[4px] bg-[#ededed] p-[5px]">
+                    <div className="aspect-square bg-[#e2e2e2]" />
+                    <div className="my-2 h-3 rounded bg-[#e2e2e2]" />
+                    <div className="h-3 w-2/3 rounded bg-[#e2e2e2]" />
+                  </div>
+                ))}
+              </div>
             ) : (
-              <div className="rounded-md border border-[#eae5df] bg-white px-6 py-14 text-center text-sm text-[#817870]">
-                {productsLoading ? "Loading Morven products..." : "No products match your selection. Try another category or search."}
+              <div className="rounded-[5px] bg-white px-6 py-16 text-center text-[13px] text-[#777]">
+                No Morven products match your search or category.
+                <button type="button" onClick={() => { setSearch(""); setCategory(""); setInput(""); }}
+                  className="ml-2 font-semibold text-[#ff6a00] hover:underline">
+                  View all products
+                </button>
               </div>
             )}
           </section>
+
+          <div className="mt-10 flex flex-wrap items-center gap-3 border-t border-[#ebebeb] pt-4 text-[10px] text-[#777]">
+            <span className="font-semibold text-[#555]">Related searches:</span>
+            {["Men's suits", "Formal shirts", "Business trousers", "Wedding suits", "Leather shoes", "Accessories"].map((term) => (
+              <button type="button" key={term}
+                onClick={() => { setSearch(term.split(" ").slice(-1)[0]); setInput(term.split(" ").slice(-1)[0]); setCategory(""); }}
+                className="rounded-full border border-[#e5e5e5] bg-white px-3 py-[5px] hover:border-[#ff6a00]">
+                {term}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
       <Footer />
