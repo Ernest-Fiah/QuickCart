@@ -118,7 +118,7 @@ const Footer = () => {
 
               <li>
                 <a
-                  href="#"
+                  href="/size-guide"
                   className="inline-block transition-all duration-300 hover:translate-x-1 hover:text-black"
                 >
                   Size Guide

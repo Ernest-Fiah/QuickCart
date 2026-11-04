@@ -1,6 +1,8 @@
 import mongoose from 'mongoose';
 
 const OrderSchema = new mongoose.Schema({
+    paymentReference: String,
+    paymentStatus: String,
     userId: {
         type: String,
         required: true,
@@ -15,6 +17,9 @@ const OrderSchema = new mongoose.Schema({
                 ref: 'Product'
             },
 
+            size: { type: String, default: '' },
+            name: String,
+            unitPrice: Number,
             quantity: {
                 type: Number,
                 required: true

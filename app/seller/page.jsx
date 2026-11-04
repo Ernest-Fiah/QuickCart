@@ -11,6 +11,7 @@ const AddProduct = () => {
 
   const { getToken } = useAppContext();
 
+  const [sizes, setSizes] = useState('');
   const [files, setFiles] = useState([]);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -27,6 +28,7 @@ const AddProduct = () => {
 
       const formData = new FormData();
 
+      formData.append('sizes', JSON.stringify(sizes.split(',').map(s => s.trim()).filter(Boolean)));
       formData.append('name', name);
       formData.append('description', description);
       formData.append('category', category);
@@ -53,6 +55,7 @@ const AddProduct = () => {
 
         alert(data.message);
 
+        setSizes('');
         setFiles([]);
         setName('');
         setDescription('');
@@ -301,6 +304,11 @@ const AddProduct = () => {
 
         </div>
 
+        <div className="flex flex-col gap-2">
+          <label htmlFor="sizes">Available sizes (comma separated)</label>
+          <input id="sizes" value={sizes} onChange={e => setSizes(e.target.value)} placeholder="S, M, L or 15 in, 15.5 in, 16 in" required={category !== 'ACCESSORY'} className="border rounded p-3" />
+          <p className="text-sm text-gray-500">Enter only sizes available for this product. Include units for neck measurements.</p>
+        </div>
         <button
           type="submit"
           className="px-8 py-2.5 bg-black text-white font-medium rounded"

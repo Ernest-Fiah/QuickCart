@@ -10,12 +10,14 @@ import { useParams } from "next/navigation";
 import Loading from "@/components/Loading";
 import { useAppContext } from "@/context/AppContext";
 import React from "react";
+import { requiresSize } from "@/lib/commerce.mjs";
 
 const Product = () => {
     const { id } = useParams();
 
     const { products, router, addToCart, currency } = useAppContext();
 
+    const [selectedSize, setSelectedSize] = useState("");
     const [mainImage, setMainImage] = useState(null);
     const [productData, setProductData] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -46,6 +48,8 @@ const Product = () => {
     };
 
     useEffect(() => {
+        setSelectedSize("");
+        setMainImage(null);
         fetchProductData();
     }, [id]);
 
@@ -184,7 +188,7 @@ const Product = () => {
                                         </td>
 
                                         <td className="text-gray-800/50">
-                                            Generic
+                                            Morven
                                         </td>
                                     </tr>
 
@@ -211,10 +215,18 @@ const Product = () => {
                             </table>
                         </div>
 
+                        <fieldset className="mt-6">
+                            <legend className="font-medium mb-3">Choose your size</legend>
+                            <div className="flex flex-wrap gap-2">
+                                {(productData.sizes || []).map(size => <button type="button" key={size} aria-pressed={selectedSize === size} onClick={() => setSelectedSize(size)} className={`border rounded px-4 py-2 ${selectedSize === size ? 'bg-black text-white' : 'bg-white'}`}>{size}</button>)}
+                            </div>
+                            {requiresSize(productData) && !productData.sizes?.length && <p className="text-sm mt-2">Sizes are being confirmed. Contact the shop on 055 878 8167 before ordering.</p>}
+                            <p className="text-sm text-gray-500 mt-3">Use the size printed on a well-fitting garment. Shirt neck sizes should include their unit (inches or cm); letter sizes depend on the product. Contact us for help choosing your fit. <a className="underline" href="/size-guide">View size guide</a></p>
+                        </fieldset>
                         <div className="flex items-center mt-10 gap-4">
                             <button
                                 onClick={() =>
-                                    addToCart(productData._id)
+                                    addToCart(productData._id, selectedSize)
                                 }
                                 className="w-full py-3.5 bg-gray-100 text-gray-800/80 hover:bg-gray-200 transition"
                             >
@@ -222,9 +234,8 @@ const Product = () => {
                             </button>
 
                             <button
-                                onClick={() => {
-                                    addToCart(productData._id);
-                                    router.push("/cart");
+                                onClick={async () => {
+                                    if (await addToCart(productData._id, selectedSize)) router.push("/cart");
                                 }}
                                 className="w-full py-3.5 bg-orange-500 text-white hover:bg-orange-600 transition"
                             >
@@ -257,7 +268,7 @@ const Product = () => {
                             ))}
                     </div>
 
-                    <button className="px-8 py-2 mb-16 border rounded text-gray-500/70 hover:bg-slate-50/90 transition">
+                    <button onClick={() => router.push("/all-products")} className="px-8 py-2 mb-16 border rounded text-gray-500/70 hover:bg-slate-50/90 transition">
                         See more
                     </button>
                 </div>
