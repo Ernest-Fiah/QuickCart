@@ -40,14 +40,9 @@ export default function ImportMorvenCollection() {
       try {
         const token = await getToken();
         const headers = { Authorization: "Bearer " + token };
-        const [productsResponse, savedResponse] = await Promise.all([
-          fetch("/api/product/seller-list", { headers, cache: "no-store" }),
-          fetch("/api/product/import-collection", { headers, cache: "no-store" }),
-        ]);
-        const productData = await productsResponse.json();
+        const savedResponse = await fetch("/api/product/import-collection", { headers, cache: "no-store" });
         const savedData = await savedResponse.json();
         if (!active) return;
-        const old = productData.success ? productData.products || [] : [];
         const prepared = savedData.success ? savedData.uploaded || [] : [];
         setExistingCount(prepared.length);
         setPublished(prepared.length === initial.length && prepared.every(item => item.active));
@@ -63,7 +58,7 @@ export default function ImportMorvenCollection() {
           };
         }));
       } catch (error) {
-        if (active) setMessage("Could not retrieve previous catalog pricing. Enter prices manually.");
+        if (active) setMessage("Could not load saved collection progress; the requested November prices are prefilled below.");
       } finally {
         if (active) setLoading(false);
       }
