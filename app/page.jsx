@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import Footer from "@/components/Footer";
 import { useAppContext } from "@/context/AppContext";
+import { matchesProductSearch, sortProducts, suggestProducts } from "@/lib/storefrontSearch.mjs";
 
 // Alibaba-style compact product marketplace, adapted to Morven's existing catalog.
 // The first two website navbars are already supplied by app/layout.js.
@@ -163,6 +164,9 @@ function DiscoveryTile({ title, sub, product, accent, onClick }) {
 export default function Home() {
   const { products, productsLoading, fetchProductData, currency } = useAppContext();
   const [searchInput, setSearchInput] = useState("");
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [suggestionIndex, setSuggestionIndex] = useState(-1);
+  const [sortBy, setSortBy] = useState("newest");
   const [term, setTerm] = useState("");
   const [category, setCategory] = useState("");
   const [mode, setMode] = useState("Products");
@@ -191,18 +195,18 @@ export default function Home() {
     (a, b) => Number(b.date || 0) - Number(a.date || 0)
   ), [catalog]);
 
-  const filtered = useMemo(() => {
-    const query = term.toLowerCase().trim();
-    return newest.filter(product => {
-      const fitsCategory = !category || String(product.category || "").toUpperCase() === category.toUpperCase();
-      const fitsTerm = !query || [product.name, product.category, product.description].some(
-        value => String(value || "").toLowerCase().includes(query)
-      );
-      return fitsCategory && fitsTerm;
-    });
-  }, [newest, category, term]);
+  const filtered = useMemo(() => sortProducts(newest.filter(product =>
+    (!category || String(product.category || "").toUpperCase() === category.toUpperCase()) &&
+    matchesProductSearch(product, term)
+  ), sortBy), [newest, category, term, sortBy]);
 
-  useEffect(() => setVisible(60), [term, category]);
+  const suggestions = useMemo(
+    () => suggestProducts(newest, searchInput, 5),
+    [newest, searchInput]
+  );
+  const suggestionsVisible = showSuggestions && searchInput.trim().length >= 2;
+
+  useEffect(() => setVisible(60), [term, category, sortBy]);
 
   useEffect(() => {
     if (visible >= filtered.length || !sentinelRef.current) return;
@@ -218,10 +222,10 @@ export default function Home() {
     String(product.category || "").toUpperCase() === id && product.image?.[0]);
 
   const featured = [
-    { title: "Browsing history", sub: "Explore recent Morven styles", product: newest.find(p => p.image?.[0]), category: "" },
+    { title: "New arrivals", sub: "Explore recent Morven styles", product: newest.find(p => p.image?.[0]), category: "" },
     { title: "Keep looking for", sub: "Suits and formalwear", product: findCategory("SUIT") || newest[1], category: "SUIT" },
-    { title: "Frequently searched", sub: "Shirts & accessories", product: findCategory("SHIRT") || findCategory("ACCESSORY") || newest[2], category: "SHIRT" },
-    { title: "Fast-selling styles", sub: "Explore the Morven collection", product: findCategory("JACKET") || newest[3] || newest[0], category: "", accent: true },
+    { title: "Explore shirts", sub: "Shirts & accessories", product: findCategory("SHIRT") || findCategory("ACCESSORY") || newest[2], category: "SHIRT" },
+    { title: "Featured styles", sub: "Explore the Morven collection", product: findCategory("JACKET") || newest[3] || newest[0], category: "", accent: true },
   ];
 
   const scrollToCatalog = () => document.getElementById("morven-marketplace-products")?.scrollIntoView(
@@ -233,13 +237,30 @@ export default function Home() {
     setTerm("");
     setSearchInput("");
     setVisible(60);
+    setShowSuggestions(false);
+    setSuggestionIndex(-1);
+    scrollToCatalog();
+  };
+
+  const chooseSuggestion = (product) => {
+    setSearchInput(product.name || "");
+    setTerm(product.name || "");
+    setCategory("");
+    setShowSuggestions(false);
+    setSuggestionIndex(-1);
     scrollToCatalog();
   };
 
   const submitSearch = event => {
     event.preventDefault();
-    setTerm(searchInput);
+    if (showSuggestions && suggestionIndex >= 0 && suggestions[suggestionIndex]) {
+      chooseSuggestion(suggestions[suggestionIndex]);
+      return;
+    }
+    setTerm(searchInput.trim());
     setCategory("");
+    setShowSuggestions(false);
+    setSuggestionIndex(-1);
     scrollToCatalog();
   };
 
@@ -282,7 +303,7 @@ export default function Home() {
           <form
             onSubmit={submitSearch}
             role="search"
-            className="mx-auto mt-1.5 max-w-[810px] rounded-[10px] border border-[#f58938] bg-white px-2.5 py-2 shadow-[0_5px_18px_rgba(151,80,24,0.08)] transition-shadow focus-within:shadow-[0_5px_22px_rgba(241,115,23,0.16)] sm:mt-2 sm:px-3 sm:py-2.5"
+            className="relative z-30 mx-auto mt-1.5 max-w-[810px] rounded-[10px] border border-[#f58938] bg-white px-2.5 py-2 shadow-[0_5px_18px_rgba(151,80,24,0.08)] transition-shadow focus-within:shadow-[0_5px_22px_rgba(241,115,23,0.16)] sm:mt-2 sm:px-3 sm:py-2.5"
           >
             <div className="flex h-[36px] items-center gap-2 sm:h-[38px]">
               <span aria-hidden="true" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#fff3ea] text-[#ea6b15]">
@@ -291,7 +312,24 @@ export default function Home() {
               <input
                 type="search"
                 value={searchInput}
-                onChange={e => setSearchInput(e.target.value)}
+                onChange={e => { setSearchInput(e.target.value); setShowSuggestions(true); setSuggestionIndex(-1); }}
+                onFocus={() => setShowSuggestions(true)}
+                onBlur={() => setShowSuggestions(false)}
+                onKeyDown={e => {
+                  if (!suggestionsVisible) return;
+                  if (e.key === "Escape") { setShowSuggestions(false); setSuggestionIndex(-1); }
+                  else if (e.key === "ArrowDown" && suggestions.length) {
+                    e.preventDefault();
+                    setSuggestionIndex(index => Math.min(index + 1, suggestions.length - 1));
+                  } else if (e.key === "ArrowUp" && suggestions.length) {
+                    e.preventDefault();
+                    setSuggestionIndex(index => Math.max(index - 1, -1));
+                  }
+                }}
+                role="combobox"
+                aria-autocomplete="list"
+                aria-controls="morven-search-suggestions"
+                aria-expanded={suggestionsVisible && suggestions.length > 0}
                 aria-label="Search Morven products"
                 placeholder="What are you looking for?"
                 className="h-full min-w-0 flex-1 border-0 bg-transparent text-[11px] text-[#252525] outline-none placeholder:text-[#9c9c9c] sm:text-[12px]"
@@ -316,6 +354,41 @@ export default function Home() {
                 </button>
               ))}
             </div>
+            {suggestionsVisible && (
+              <div
+                id="morven-search-suggestions"
+                role="listbox"
+                aria-label="Matching Morven products"
+                className="absolute left-0 right-0 top-[calc(100%+6px)] z-40 overflow-hidden rounded-[10px] border border-[#eadfd4] bg-white p-1.5 shadow-[0_12px_26px_rgba(49,32,15,0.15)]"
+              >
+                {suggestions.length ? suggestions.map((item, index) => (
+                  <button
+                    key={item._id}
+                    type="button"
+                    role="option"
+                    aria-selected={index === suggestionIndex}
+                    onMouseDown={e => e.preventDefault()}
+                    onClick={() => chooseSuggestion(item)}
+                    className={"flex w-full items-center gap-2.5 rounded-[6px] px-2 py-2 text-left transition-colors hover:bg-[#fff4ea] " +
+                      (index === suggestionIndex ? "bg-[#fff4ea]" : "")}
+                  >
+                    {item.image?.[0] ? (
+                      <Image unoptimized src={item.image[0]} alt="" width={34} height={44}
+                        className="h-[44px] w-[34px] rounded-[3px] bg-[#f4f4f2] object-cover object-top"/>
+                    ) : <span className="h-[44px] w-[34px] rounded bg-[#f4f4f2]"/>}
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-[11px] font-semibold text-[#34302d]">{item.name}</span>
+                      <span className="mt-0.5 block truncate text-[9px] text-[#8c8279]">{item.category}</span>
+                    </span>
+                    <span className="shrink-0 text-[10px] font-semibold text-[#e96108]">
+                      {money(item.offerPrice, currency)}
+                    </span>
+                  </button>
+                )) : (
+                  <p className="px-3 py-3 text-[11px] text-[#777]">No matching products. Try another style or category.</p>
+                )}
+              </div>
+            )}
           </form>
 
           <div className="mt-4 grid grid-cols-1 divide-y divide-[#f1f1f1] overflow-hidden rounded-[9px] border border-[#ececec] bg-white shadow-[0_2px_10px_rgba(0,0,0,0.025)] sm:mt-5 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
@@ -378,6 +451,19 @@ export default function Home() {
 
           {/* Main content is the continuous six-column merchandise feed, not a boutique hero. */}
           <section id="morven-marketplace-products" className="scroll-mt-40 pt-[9px]" aria-label="All Morven products">
+            <div className="mb-2 flex flex-wrap items-center justify-between gap-2 rounded-[7px] bg-white px-2.5 py-2 text-[11px] text-[#555]">
+              <p className="text-[#6e6a66]"><span className="font-semibold text-[#272727]">Morven collection</span> · {filtered.length} products</p>
+              <label className="flex items-center gap-2 text-[10px]">
+                <span>Sort by</span>
+                <select value={sortBy} onChange={e => setSortBy(e.target.value)}
+                  aria-label="Sort products"
+                  className="rounded-[6px] border border-[#e8e1db] bg-[#faf9f8] px-2 py-1.5 text-[10px] text-[#35312d] outline-none focus:border-[#ef7b30]">
+                  <option value="newest">Newest</option>
+                  <option value="price-low">Price: Low to high</option>
+                  <option value="price-high">Price: High to low</option>
+                </select>
+              </label>
+            </div>
             {(category || term) && (
               <div className="mb-[7px] flex items-center justify-between rounded-[3px] border border-[#f0f0f0] bg-white px-2.5 py-1.5 text-[11px]">
                 <p>
