@@ -53,6 +53,11 @@ export default function Product() {
     const [tab, setTab] = useState("attributes");
     const [showMore, setShowMore] = useState(false);
     const [zoom, setZoom] = useState(false);
+    const [reviewData, setReviewData] = useState({ reviews: [], count: 0, average: 0, canReview: false, hasReviewed: false });
+    const [reviewLoading, setReviewLoading] = useState(true);
+    const [reviewRating, setReviewRating] = useState(5);
+    const [reviewComment, setReviewComment] = useState("");
+    const [reviewSubmitting, setReviewSubmitting] = useState(false);
 
     useEffect(() => {
         let mounted = true;
@@ -84,6 +89,50 @@ export default function Product() {
         document.addEventListener("keydown", closeOnEscape);
         return () => document.removeEventListener("keydown", closeOnEscape);
     }, [zoom]);
+
+    useEffect(() => {
+        if (!id) return;
+        let active = true;
+        async function fetchReviews() {
+            setReviewLoading(true);
+            try {
+                const response = await fetch("/api/reviews/" + encodeURIComponent(id), { cache: "no-store" });
+                const data = await response.json();
+                if (active && data.success) setReviewData(data);
+            } catch (error) {
+                console.error("Reviews request failed:", error);
+            } finally {
+                if (active) setReviewLoading(false);
+            }
+        }
+        fetchReviews();
+        return () => { active = false; };
+    }, [id]);
+
+    const submitReview = async (event) => {
+        event.preventDefault();
+        if (reviewSubmitting) return;
+        setReviewSubmitting(true);
+        try {
+            const response = await fetch("/api/reviews/" + encodeURIComponent(id), {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ rating: reviewRating, comment: reviewComment }),
+            });
+            const result = await response.json();
+            if (!result.success) throw new Error(result.message || "Unable to submit review.");
+            const fresh = await fetch("/api/reviews/" + encodeURIComponent(id), { cache: "no-store" });
+            const latest = await fresh.json();
+            if (latest.success) setReviewData(latest);
+            setReviewComment("");
+            setTab("reviews");
+            toast.success("Thank you for reviewing your purchase!");
+        } catch (error) {
+            toast.error(error.message || "Unable to submit review.");
+        } finally {
+            setReviewSubmitting(false);
+        }
+    };
 
     const otherProducts = useMemo(() => {
         if (!product) return [];
@@ -239,14 +288,30 @@ export default function Product() {
                                 ))}
                             </div>
                         )}
-                        <div className="mt-4 border border-[#eae7e2] bg-white p-4">
-                            <h2 className="text-[15px] font-semibold">Morven</h2>
-                            <p className="mt-1 text-[12px] leading-relaxed text-[#80796f]">
-                                Explore the Morven menswear collection, crafted for everyday and formal style.
-                            </p>
-                            <Link href="/about" className="mt-3 inline-flex items-center gap-2 text-[12px] font-medium text-[#e86720]">
-                                About Morven <Arrow />
-                            </Link>
+                        <div className="mt-3 rounded-md border border-[#e6e3df] bg-white p-3.5 shadow-[0_3px_15px_rgba(0,0,0,0.03)]">
+                            <div className="flex items-center gap-2.5 border-b border-[#ece9e5] pb-3">
+                                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-sm border border-[#ece9e5] bg-[#faf9f7] text-[24px] font-semibold">M</div>
+                                <div className="min-w-0">
+                                    <h2 className="truncate text-[12px] font-semibold underline decoration-[#b4aca3] underline-offset-2">Morven Ghana</h2>
+                                    <p className="mt-1 flex items-center gap-1.5 text-[11px] text-[#877e75]">
+                                        <span aria-label="Ghana flag" role="img">🇬🇭</span> Ghana · Morven menswear
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2 border-b border-[#ece9e5] py-3">
+                                <div>
+                                    <p className="text-[12px] font-semibold">Product enquiries</p>
+                                    <p className="mt-1 text-[10px] text-[#8d857d]">Contact our team</p>
+                                </div>
+                                <div>
+                                    <p className="text-[12px] font-semibold">Shop other styles</p>
+                                    <p className="mt-1 text-[10px] text-[#8d857d]">Browse Morven</p>
+                                </div>
+                            </div>
+                            <div className="flex flex-wrap items-center justify-between gap-3 pt-3 text-[11px]">
+                                <Link href="/contact" className="font-semibold text-[#e86720] hover:underline">Contact Morven →</Link>
+                                <Link href="/all-products" className="text-[#766e65] hover:underline">Other products →</Link>
+                            </div>
                         </div>
                     </section>
 
@@ -396,7 +461,7 @@ export default function Product() {
                     <div className="flex gap-8 border-b border-[#eae7e2]">
                         {[
                             { id: "attributes", label: "Attributes & details" },
-                            { id: "reviews", label: "Reviews" },
+                            { id: "reviews", label: "Reviews (" + reviewData.count + ")" },
                         ].map((entry) => (
                             <button key={entry.id} type="button" onClick={() => setTab(entry.id)}
                                 className={"border-b-2 pb-4 text-[13px] font-semibold " +
@@ -430,8 +495,63 @@ export default function Product() {
                             </Link>
                         </div>
                     ) : (
-                        <div className="py-10 text-[13px] text-[#807970]">
-                            Customer reviews are not available for this product yet.
+                        <div className="max-w-[950px] py-8">
+                            <div className="flex flex-wrap items-center justify-between gap-5 border-b border-[#ece9e3] pb-6">
+                                <div>
+                                    <h3 className="text-[16px] font-semibold">Customer reviews</h3>
+                                    {reviewData.count > 0 ? (
+                                        <p className="mt-2 text-[13px]">
+                                            <span className="font-bold text-[#e86d20]">{"★".repeat(Math.round(reviewData.average))}</span>
+                                            <span className="ml-2 font-semibold">{Number(reviewData.average).toFixed(1)} / 5</span>
+                                            <span className="ml-2 text-[#8c8278]">({reviewData.count} verified {reviewData.count === 1 ? "review" : "reviews"})</span>
+                                        </p>
+                                    ) : (
+                                        <p className="mt-2 text-[12px] text-[#8c8278]">No verified reviews submitted yet.</p>
+                                    )}
+                                </div>
+                                <p className="text-[11px] text-[#8c8278]">Only customers with confirmed purchases can post reviews.</p>
+                            </div>
+                            {reviewLoading ? (
+                                <p className="py-7 text-[13px] text-[#8d8279]">Loading reviews...</p>
+                            ) : reviewData.reviews.length ? (
+                                <div className="divide-y divide-[#ece9e3]">
+                                    {reviewData.reviews.map((review) => (
+                                        <article key={review._id} className="py-5">
+                                            <div className="flex flex-wrap items-center gap-2">
+                                                <span className="text-[13px] font-semibold text-[#ec721e]">{"★".repeat(review.rating)}</span>
+                                                <span className="text-[12px] font-semibold text-[#3b352e]">{review.displayName || "Verified customer"}</span>
+                                                <span className="rounded-sm bg-[#f1f8ef] px-2 py-1 text-[10px] text-[#42763b]">Verified purchase</span>
+                                            </div>
+                                            <p className="mt-2 whitespace-pre-wrap break-words text-[13px] leading-6 text-[#635c54]">{review.comment}</p>
+                                            <p className="mt-2 text-[10px] text-[#a39b91]">
+                                                {review.createdAt ? new Date(review.createdAt).toLocaleDateString("en-GH", { year: "numeric", month: "short", day: "numeric" }) : ""}
+                                            </p>
+                                        </article>
+                                    ))}
+                                </div>
+                            ) : null}
+                            {reviewData.canReview && (
+                                <form onSubmit={submitReview} className="mt-7 space-y-3 rounded-sm border border-[#eae7e2] bg-[#faf9f7] p-5">
+                                    <h4 className="text-[14px] font-semibold">Review your purchase</h4>
+                                    <label htmlFor="review-stars" className="block text-[12px] font-medium">Rating</label>
+                                    <select id="review-stars" value={reviewRating} onChange={(event) => setReviewRating(Number(event.target.value))}
+                                        className="w-full max-w-48 border border-[#d8d3cb] bg-white px-3 py-2 text-[13px]">
+                                        {[5, 4, 3, 2, 1].map((n) => <option key={n} value={n}>{n} {n === 1 ? "star" : "stars"}</option>)}
+                                    </select>
+                                    <label htmlFor="review-message" className="block text-[12px] font-medium">Your experience</label>
+                                    <textarea id="review-message" value={reviewComment} onChange={(event) => setReviewComment(event.target.value)}
+                                        minLength={15} maxLength={800} required rows={4}
+                                        placeholder="How was the quality, fit and overall experience?"
+                                        className="w-full border border-[#d8d3cb] bg-white p-3 text-[13px] outline-none focus:border-[#ef742b]" />
+                                    <button type="submit" disabled={reviewSubmitting}
+                                        className="rounded-full bg-[#f26717] px-6 py-2.5 text-[12px] font-semibold text-white disabled:opacity-50">
+                                        {reviewSubmitting ? "Submitting..." : "Post verified review"}
+                                    </button>
+                                </form>
+                            )}
+                            {reviewData.hasReviewed && (
+                                <p className="mt-6 text-[12px] text-[#6a7564]">Thank you. Your review for this product has been submitted.</p>
+                            )}
                         </div>
                     )}
                 </section>
