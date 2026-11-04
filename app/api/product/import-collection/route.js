@@ -39,7 +39,8 @@ function parseInput(form) {
     throw new Error("Please enter a product name (3–140) and description (20–2000 characters).");
   if (!Number.isFinite(price) || !Number.isFinite(offerPrice) ||
       price <= 0 || offerPrice <= 0 || price > 100000 || offerPrice > price ||
-      Math.round(price * 100) !== price * 100 || Math.round(offerPrice * 100) !== offerPrice * 100)
+      Math.abs(Math.round(price * 100) - price * 100) > 0.00001 ||
+      Math.abs(Math.round(offerPrice * 100) - offerPrice * 100) > 0.00001)
     throw new Error("Enter valid GH₵ prices, with the offer price not exceeding the regular price.");
   if (!Array.isArray(sizes) || sizes.length === 0 || sizes.length > allowed.length ||
       sizes.some(size => typeof size !== "string" || !allowed.includes(size)))
