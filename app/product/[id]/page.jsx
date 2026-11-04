@@ -28,7 +28,7 @@ const OtherProductCard = ({ product, currency }) => (
         className="group min-w-0 border border-[#ece9e4] bg-white p-2.5 transition hover:border-[#b4aca1]">
         <div className="aspect-[4/5] overflow-hidden bg-[#f6f5f2]">
             {product.image?.[0] ? (
-                <Image src={product.image[0]} width={380} height={475} alt={product.name || "Morven product"}
+                <Image unoptimized src={product.image[0]} width={380} height={475} alt={product.name || "Morven product"}
                     className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.045]" />
             ) : (
                 <span className="flex h-full items-center justify-center text-xs text-gray-400">Image unavailable</span>
@@ -246,7 +246,7 @@ export default function Product() {
                                             onClick={() => setPhotoIndex(index)}
                                             className={"aspect-[3/4] overflow-hidden border-2 bg-[#f8f7f4] " +
                                                 (photoIndex === index ? "border-[#f26717]" : "border-transparent hover:border-[#afa69d]")}>
-                                            <Image src={source} width={100} height={130} alt=""
+                                            <Image unoptimized src={source} width={100} height={130} alt=""
                                                 className="h-full w-full object-contain" />
                                         </button>
                                     ))}
@@ -257,7 +257,7 @@ export default function Product() {
                                     {currentPhoto ? (
                                         <button type="button" onClick={() => setZoom(true)}
                                             aria-label="Enlarge photo" className="h-full w-full cursor-zoom-in">
-                                            <Image key={currentPhoto} src={currentPhoto} width={900} height={1125}
+                                            <Image unoptimized key={currentPhoto} src={currentPhoto} width={900} height={1125}
                                                 alt={product.name} priority className="h-full w-full object-contain" />
                                         </button>
                                     ) : <p className="text-sm text-gray-400">Image unavailable</p>}
@@ -283,7 +283,7 @@ export default function Product() {
                                         aria-label={"View photo " + (index + 1)}
                                         className={"h-20 w-16 shrink-0 overflow-hidden border-2 bg-[#f7f6f3] " +
                                             (photoIndex === index ? "border-[#f26717]" : "border-transparent")}>
-                                        <Image src={source} width={80} height={100} alt="" className="h-full w-full object-contain" />
+                                        <Image unoptimized src={source} width={80} height={100} alt="" className="h-full w-full object-contain" />
                                     </button>
                                 ))}
                             </div>
@@ -567,7 +567,7 @@ export default function Product() {
                     </button>
                     <div className="flex h-full max-h-[90vh] w-full max-w-[900px] items-center justify-center"
                         onClick={(event) => event.stopPropagation()}>
-                        <Image src={currentPhoto} width={1100} height={1375} alt={product.name}
+                        <Image unoptimized src={currentPhoto} width={1100} height={1375} alt={product.name}
                             className="max-h-full w-auto max-w-full object-contain" />
                     </div>
                 </div>
