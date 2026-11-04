@@ -8,7 +8,7 @@ import { MORVEN_NEW_COLLECTION } from "@/lib/morvenNewCollection.mjs";
 import { getCategorySizeOptions } from "@/lib/sizing.mjs";
 
 const initial = MORVEN_NEW_COLLECTION.map(item => ({
-  ...item, price: "", offerPrice: "", availableSizes: [], suggested: false,
+  ...item, price: String(item.price), offerPrice: String(item.offerPrice), availableSizes: [], suggested: true,
 }));
 
 function validItem(item) {
@@ -51,22 +51,15 @@ export default function ImportMorvenCollection() {
         const prepared = savedData.success ? savedData.uploaded || [] : [];
         setExistingCount(prepared.length);
         setPublished(prepared.length === initial.length && prepared.every(item => item.active));
-        const priceExamples = {};
-        for (const item of old) {
-          const key = String(item.category || "").toUpperCase();
-          if (!priceExamples[key] && Number(item.price) > 0 && Number(item.offerPrice) > 0)
-            priceExamples[key] = item;
-        }
         setItems(initial.map(item => {
           const stored = prepared.find(row => row.sourceKey === item.sourceKey);
-          const sample = priceExamples[item.category];
           return {
             ...item,
             name: stored?.name || item.name,
-            price: stored ? String(stored.price) : sample ? String(sample.price) : "",
-            offerPrice: stored ? String(stored.offerPrice) : sample ? String(sample.offerPrice) : "",
+            price: stored ? String(stored.price) : String(item.price),
+            offerPrice: stored ? String(stored.offerPrice) : String(item.offerPrice),
             availableSizes: Array.isArray(stored?.availableSizes) ? stored.availableSizes : [],
-            suggested: !stored && !!sample,
+            suggested: !stored,
           };
         }));
       } catch (error) {
@@ -155,11 +148,22 @@ export default function ImportMorvenCollection() {
             <h1 className="text-2xl font-semibold">Publish 20 New Morven Products</h1>
             <p className="mt-2 max-w-[760px] text-[13px] leading-6 text-[#716c66]">
               Approve regular price, selling price, descriptions and sizes for every garment.
-              The price suggestions come from your existing product categories, not confirmed prices for these new items.
+              All 20 prices are now prefilled using the requested ranges: suits GH₵3,500–7,000; dress shirts around GH₵760; polos and knitwear GH₵384–800. Review the selling prices before publishing.
               After approval, the system replaces the old active shop listings without deleting past order records.
             </p>
           </div>
-          <Link href="/seller/product-list" className="rounded border border-gray-300 bg-white px-4 py-2 text-[12px]">Current products</Link>
+          <div className="flex flex-wrap gap-2">
+            <button type="button" onClick={() => {
+              setItems(old => old.map((item, index) => ({
+                ...item, price: String(MORVEN_NEW_COLLECTION[index].price),
+                offerPrice: String(MORVEN_NEW_COLLECTION[index].offerPrice), suggested: true
+              })));
+              setMessage("The requested November prices have been applied to all 20 items. Review stock sizes before publishing.");
+            }} className="rounded border border-[#b97a55] bg-[#fff5ed] px-4 py-2 text-[12px] text-[#b15e28]">
+              Apply November Prices
+            </button>
+            <Link href="/seller/product-list" className="rounded border border-gray-300 bg-white px-4 py-2 text-[12px]">Current products</Link>
+          </div>
         </div>
 
         <div className="mb-5 rounded border border-[#e7ddd4] bg-white p-4 text-[12px] leading-6">
@@ -210,7 +214,7 @@ export default function ImportMorvenCollection() {
                         </label>
                       </div>
                       {item.suggested && <p className="text-[10px] text-[#a46d48]">
-                        Suggested using an older {item.category.toLowerCase()} listing. Confirm the correct selling price.
+                        Assigned from your requested November pricing ranges. Edit this amount if necessary.
                       </p>}
                       <div>
                         <div className="mb-2 flex items-center justify-between gap-2">
