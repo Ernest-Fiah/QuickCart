@@ -222,6 +222,8 @@ export default function Home() {
       document.getElementById("morven-marketplace-discover")?.scrollIntoView({ behavior: "smooth" });
     } else if (next === "New Arrivals") {
       setCategory(""); setTerm(""); setSearchInput(""); scrollToCatalog();
+    } else if (next === "Discover") {
+      document.getElementById("morven-marketplace-discover")?.scrollIntoView({ behavior: "smooth" });
     }
   };
 
@@ -229,7 +231,7 @@ export default function Home() {
     <>
       <div className="min-h-screen bg-[#f9f9f9] text-[#272727]">
         {/* app/layout.js supplies the original Morven Navbar and FashionNavbar. */}
-        <main className="mx-auto max-w-[1460px] px-[10px] pb-16 pt-2 sm:px-4 lg:px-6">
+        <div className="mx-auto max-w-[1460px] px-[10px] pb-16 pt-2 sm:px-4 lg:px-6">
           {/* Alibaba's small centered tabs and narrow orange-framed search card. */}
           <div className="flex items-center justify-center gap-4 text-[12px] font-semibold sm:gap-8">
             {["Discover", "Products", "Collections", "New Arrivals"].map((item, index) => (
@@ -357,7 +359,7 @@ export default function Home() {
               </button>
             ))}
           </div>
-        </main>
+        </div>
       </div>
       <Footer/>
     </>
