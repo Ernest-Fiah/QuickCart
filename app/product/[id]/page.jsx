@@ -323,6 +323,15 @@ export default function Product() {
                         <h1 className="mt-3 text-[23px] font-semibold leading-[1.35] tracking-[-0.025em] sm:text-[27px]">
                             {product.name}
                         </h1>
+                        {reviewData.count > 0 && (
+                            <button type="button"
+                                onClick={() => { setTab("reviews"); document.getElementById("morven-reviews")?.scrollIntoView({ behavior: "smooth" }); }}
+                                className="mt-3 flex items-center gap-2 text-[12px] hover:text-[#d8661e]">
+                                <span className="text-[#f08427]">{"★".repeat(Math.round(reviewData.average))}</span>
+                                <span>{Number(reviewData.average).toFixed(1)} / 5</span>
+                                <span className="text-[#8d8379]">({reviewData.count} verified reviews)</span>
+                            </button>
+                        )}
                         <div className="mt-5 border-b border-[#ece9e3] pb-5">
                             <p className="text-[30px] font-bold tracking-[-0.03em]">{money(product.offerPrice, currency)}</p>
                             {discounted && (
@@ -457,7 +466,7 @@ export default function Product() {
                     )}
                 </section>
 
-                <section className="mt-14 border-t border-[#ece9e3] pt-6">
+                <section id="morven-reviews" className="scroll-mt-44 mt-14 border-t border-[#ece9e3] pt-6">
                     <div className="flex gap-8 border-b border-[#eae7e2]">
                         {[
                             { id: "attributes", label: "Attributes & details" },
