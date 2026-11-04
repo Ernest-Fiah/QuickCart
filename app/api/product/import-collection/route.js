@@ -50,16 +50,14 @@ function parseInput(form) {
   };
 }
 
-function cloudinaryUpload(file) {
-  return new Promise(async (resolve, reject) => {
-    try {
-      const buffer = Buffer.from(await file.arrayBuffer());
-      const stream = cloudinary.uploader.upload_stream(
-        { resource_type: "image", folder: "morven/collection-2026-11", overwrite: false },
-        (error, result) => error ? reject(error) : resolve(result.secure_url)
-      );
-      stream.end(buffer);
-    } catch (error) { reject(error); }
+async function cloudinaryUpload(file) {
+  const buffer = Buffer.from(await file.arrayBuffer());
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      { resource_type: "image", folder: "morven/collection-2026-11", overwrite: false },
+      (error, result) => error ? reject(error) : resolve(result.secure_url)
+    );
+    stream.end(buffer);
   });
 }
 
