@@ -4,6 +4,7 @@
 import React from "react";
 import { useAppContext } from "@/context/AppContext";
 import Footer from "@/components/Footer";
+import { MORVEN_CONTACT } from "@/lib/morvenContact";
 
 const About = () => {
 
@@ -122,11 +123,11 @@ const About = () => {
                                     <div className="h-px w-12 bg-[#D6D2C9] mb-5" />
 
                                     <p className="text-[9px] uppercase tracking-[0.25em] text-[#77736B]">
-                                        Accra
+                                        {MORVEN_CONTACT.location}
                                     </p>
 
                                     <p className="mt-1 text-[9px] uppercase tracking-[0.25em] text-[#77736B]">
-                                        Ghana
+                                        Morven Ghana
                                     </p>
 
                                 </div>
