@@ -1,306 +1,81 @@
-
 "use client";
 
-import React from "react";
-import { assets } from "@/assets/assets";
-import Image from "next/image";
+import Link from "next/link";
+import { MORVEN_CONTACT } from "@/lib/morvenContact";
 
-const Footer = () => {
+const Arrow = () => (
+  <svg aria-hidden="true" viewBox="0 0 24 24" width="15" height="15" fill="none"
+    stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M5 12h14m-6-6 6 6-6 6" />
+  </svg>
+);
+
+export default function Footer() {
   return (
-    <footer className="w-full bg-white text-gray-500">
+    <footer className="border-t border-[#e6dcd5] bg-[#f7f2ee] text-[#3c3231]">
+      <div className="mx-auto grid max-w-[1500px] gap-10 px-6 py-12 sm:grid-cols-2 lg:grid-cols-[1.7fr_0.8fr_0.9fr_1.2fr] lg:gap-14 lg:px-10">
+        <div>
+          <Link href="/" className="font-sans text-[36px] font-light tracking-[-0.035em] text-[#171414]">
+            Morven
+          </Link>
+          <p className="mt-4 max-w-[330px] text-[12px] leading-[1.9] text-[#756a66]">
+            Refined menswear for the modern gentleman. Explore suits, shirts,
+            jackets, shoes and accessories designed to elevate every wardrobe.
+          </p>
+          <p className="mt-5 text-[10px] font-bold uppercase tracking-[0.18em] text-[#7c2b3d]">
+            Style. Confidence. Distinction.
+          </p>
+        </div>
 
-      {/* MAIN FOOTER */}
-      <div className="border-b border-gray-200">
-        <div className="mx-auto flex w-full max-w-7xl flex-col items-start justify-between gap-12 px-6 py-14 md:flex-row md:px-10 lg:px-12">
+        <div>
+          <h2 className="mb-5 text-[12px] font-bold uppercase tracking-[0.1em]">Company</h2>
+          <nav aria-label="Footer company links" className="flex flex-col items-start gap-3 text-[12px] text-[#6b605c]">
+            <Link href="/" className="hover:text-[#7c2b3d]">Home</Link>
+            <Link href="/all-products" className="hover:text-[#7c2b3d]">Shop</Link>
+            <Link href="/about" className="hover:text-[#7c2b3d]">About Us</Link>
+            <Link href="/contact" className="hover:text-[#7c2b3d]">Contact Us</Link>
+          </nav>
+        </div>
 
-          {/* BRAND */}
-          <div className="w-full md:w-[38%]">
-            <div className="group">
-              <Image
-                className="w-32 md:w-36 transition-transform duration-500 group-hover:scale-[1.02]"
-                src={assets.logo}
-                alt="Morven logo"
-                width={150}
-                height={50}
-              />
-            </div>
+        <div>
+          <h2 className="mb-5 text-[12px] font-bold uppercase tracking-[0.1em]">Customer Service</h2>
+          <nav aria-label="Customer service" className="flex flex-col items-start gap-3 text-[12px] text-[#6b605c]">
+            <Link href="/contact" className="hover:text-[#7c2b3d]">Delivery Enquiries</Link>
+            <Link href="/contact" className="hover:text-[#7c2b3d]">Returns & Exchanges</Link>
+            <Link href="/contact" className="hover:text-[#7c2b3d]">Size Assistance</Link>
+            <Link href="/my-orders" className="hover:text-[#7c2b3d]">My Orders</Link>
+          </nav>
+        </div>
 
-            <p className="mt-6 max-w-md text-sm leading-7 text-gray-500">
-              Discover refined menswear crafted for the modern gentleman.
-              Morven brings together exceptional craftsmanship, timeless
-              style and premium quality to help you dress with confidence
-              for every occasion.
-            </p>
-
-            <p className="mt-5 text-[11px] font-semibold uppercase tracking-[0.2em] text-black">
-              Style. Confidence. Distinction.
-            </p>
-          </div>
-
-          {/* COMPANY */}
-          <div className="w-full md:w-[17%]">
-            <h2 className="mb-5 text-sm font-semibold uppercase tracking-[0.12em] text-black">
-              Company
-            </h2>
-
-            <ul className="space-y-3 text-sm">
-              <li>
-                <a
-                  href="/"
-                  className="inline-block transition-all duration-300 hover:translate-x-1 hover:text-black"
-                >
-                  Home
-                </a>
-              </li>
-
-              <li>
-                <a
-                  href="/all-products"
-                  className="inline-block transition-all duration-300 hover:translate-x-1 hover:text-black"
-                >
-                  Shop
-                </a>
-              </li>
-
-              <li>
-                <a
-                  href="/about"
-                  className="inline-block transition-all duration-300 hover:translate-x-1 hover:text-black"
-                >
-                  About Us
-                </a>
-              </li>
-
-              <li>
-                <a
-                  href="/contact"
-                  className="inline-block transition-all duration-300 hover:translate-x-1 hover:text-black"
-                >
-                  Contact Us
-                </a>
-              </li>
-
-              <li>
-                <a
-                  href="#"
-                  className="inline-block transition-all duration-300 hover:translate-x-1 hover:text-black"
-                >
-                  Privacy Policy
-                </a>
-              </li>
-            </ul>
-          </div>
-
-          {/* CUSTOMER SERVICE */}
-          <div className="w-full md:w-[18%]">
-            <h2 className="mb-5 text-sm font-semibold uppercase tracking-[0.12em] text-black">
-              Customer Service
-            </h2>
-
-            <ul className="space-y-3 text-sm">
-              <li>
-                <a
-                  href="#"
-                  className="inline-block transition-all duration-300 hover:translate-x-1 hover:text-black"
-                >
-                  Delivery Information
-                </a>
-              </li>
-
-              <li>
-                <a
-                  href="#"
-                  className="inline-block transition-all duration-300 hover:translate-x-1 hover:text-black"
-                >
-                  Returns & Exchanges
-                </a>
-              </li>
-
-              <li>
-                <a
-                  href="#"
-                  className="inline-block transition-all duration-300 hover:translate-x-1 hover:text-black"
-                >
-                  Size Guide
-                </a>
-              </li>
-
-              <li>
-                <a
-                  href="#"
-                  className="inline-block transition-all duration-300 hover:translate-x-1 hover:text-black"
-                >
-                  FAQs
-                </a>
-              </li>
-            </ul>
-          </div>
-
-          {/* CONTACT */}
-          <div className="w-full md:w-[22%]">
-            <h2 className="mb-5 text-sm font-semibold uppercase tracking-[0.12em] text-black">
-              Get in Touch
-            </h2>
-
-            <div className="space-y-3 text-sm leading-6">
-              <p className="font-medium text-gray-800">
-                Morven
-              </p>
-
-              <p>
-                Accra, Ghana
-              </p>
-
-              <p>
-                +233 XX XXX XXXX
-              </p>
-
-              <p>
-                info@morven.com
-              </p>
-            </div>
-
-            {/* SOCIAL MEDIA */}
-            <div className="mt-7 flex items-center gap-3">
-
-              {/* Instagram */}
-              <a
-                href="#"
-                aria-label="Instagram"
-                className="
-                  group
-                  flex
-                  h-9
-                  w-9
-                  items-center
-                  justify-center
-                  rounded-full
-                  border
-                  border-gray-200
-                  transition-all
-                  duration-300
-                  hover:-translate-y-1
-                  hover:border-black
-                  hover:bg-black
-                "
-              >
-                <Image
-                  src={assets.instagram_icon}
-                  alt="Instagram"
-                  width={16}
-                  height={16}
-                  className="
-                    h-4
-                    w-4
-                    object-contain
-                    opacity-60
-                    transition-all
-                    duration-300
-                    group-hover:brightness-0
-                    group-hover:invert
-                    group-hover:opacity-100
-                  "
-                />
-              </a>
-
-              {/* Facebook */}
-              <a
-                href="#"
-                aria-label="Facebook"
-                className="
-                  group
-                  flex
-                  h-9
-                  w-9
-                  items-center
-                  justify-center
-                  rounded-full
-                  border
-                  border-gray-200
-                  transition-all
-                  duration-300
-                  hover:-translate-y-1
-                  hover:border-black
-                  hover:bg-black
-                "
-              >
-                <Image
-                  src={assets.facebook_icon}
-                  alt="Facebook"
-                  width={16}
-                  height={16}
-                  className="
-                    h-4
-                    w-4
-                    object-contain
-                    opacity-60
-                    transition-all
-                    duration-300
-                    group-hover:brightness-0
-                    group-hover:invert
-                    group-hover:opacity-100
-                  "
-                />
-              </a>
-
-              {/* Twitter / X */}
-              <a
-                href="#"
-                aria-label="Twitter"
-                className="
-                  group
-                  flex
-                  h-9
-                  w-9
-                  items-center
-                  justify-center
-                  rounded-full
-                  border
-                  border-gray-200
-                  transition-all
-                  duration-300
-                  hover:-translate-y-1
-                  hover:border-black
-                  hover:bg-black
-                "
-              >
-                <Image
-                  src={assets.twitter_icon}
-                  alt="Twitter"
-                  width={16}
-                  height={16}
-                  className="
-                    h-4
-                    w-4
-                    object-contain
-                    opacity-60
-                    transition-all
-                    duration-300
-                    group-hover:brightness-0
-                    group-hover:invert
-                    group-hover:opacity-100
-                  "
-                />
-              </a>
-
-            </div>
+        <div>
+          <h2 className="mb-5 text-[12px] font-bold uppercase tracking-[0.1em]">Get In Touch</h2>
+          <address className="flex flex-col gap-3 text-[12px] not-italic text-[#6b605c]">
+            <span className="flex gap-2"><span aria-hidden="true">🇬🇭</span>{MORVEN_CONTACT.location}</span>
+            <a href={"tel:" + MORVEN_CONTACT.phoneE164} className="hover:text-[#7c2b3d]">
+              {MORVEN_CONTACT.phoneDisplay}
+            </a>
+            <a href={"mailto:" + MORVEN_CONTACT.email}
+              className="break-all hover:text-[#7c2b3d]">{MORVEN_CONTACT.email}</a>
+          </address>
+          <div className="mt-5 flex flex-wrap gap-2">
+            <a href={"https://wa.me/" + MORVEN_CONTACT.whatsappNumber} target="_blank" rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 rounded-full border border-[#bdaea5] bg-white px-3.5 py-2 text-[11px] font-semibold text-[#692a3a] hover:border-[#7c2b3d]">
+              WhatsApp <Arrow />
+            </a>
+            <a href={MORVEN_CONTACT.instagramUrl} target="_blank" rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 rounded-full border border-[#bdaea5] bg-white px-3.5 py-2 text-[11px] font-semibold text-[#692a3a] hover:border-[#7c2b3d]">
+              {MORVEN_CONTACT.instagramHandle} <Arrow />
+            </a>
           </div>
         </div>
       </div>
 
-      {/* COPYRIGHT */}
-      <div className="flex flex-col items-center justify-between gap-3 px-6 py-5 sm:flex-row md:px-10 lg:px-12">
-        <p className="text-center text-[10px] uppercase tracking-[0.12em] text-gray-400 sm:text-left">
-          © {new Date().getFullYear()} Morven. All Rights Reserved.
-        </p>
-
-        <p className="text-center text-[9px] uppercase tracking-[0.2em] text-gray-300">
-          Premium Menswear · Accra, Ghana
-        </p>
+      <div className="border-t border-[#e5d9d1]">
+        <div className="mx-auto flex max-w-[1500px] flex-col gap-2 px-6 py-5 text-center text-[10px] uppercase tracking-[0.13em] text-[#938680] sm:flex-row sm:justify-between sm:text-left lg:px-10">
+          <p>© {new Date().getFullYear()} Morven Ghana. All rights reserved.</p>
+          <p>Premium Menswear · Accra, Ghana</p>
+        </div>
       </div>
-
     </footer>
   );
-};
-
-export default Footer;
+}
