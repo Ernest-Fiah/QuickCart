@@ -22,7 +22,7 @@ export async function POST(request) {
       if (!mongoose.isValidObjectId(productId))
         return NextResponse.json({ success: false, message: "Invalid product." }, { status: 400 });
       const product = await Product.findById(productId).lean();
-      if (!product || (needsSize(product) && !getAvailableSizes(product).includes(size)) ||
+      if (!product || product.isActive === false || (needsSize(product) && !getAvailableSizes(product).includes(size)) ||
           (!needsSize(product) && size))
         return NextResponse.json({ success: false, message: `Please select a valid size for ${product?.name || "your product"}.` }, { status: 400 });
     }
