@@ -47,14 +47,16 @@ const TileImage = ({ product, alt }) => (
     <Image
       unoptimized
       src={product.image[0]}
-      width={360}
-      height={450}
+      width={400}
+      height={560}
       loading="lazy"
       alt={alt || product.name || "Morven product"}
-      className="h-full w-full object-contain object-center transition-transform duration-300 group-hover:scale-[1.045]"
+      className="h-full w-full object-cover object-top transition-transform duration-500 ease-out group-hover:scale-[1.045]"
     />
   ) : (
-    <div className="flex h-full w-full items-center justify-center text-[10px] text-[#999]">Morven</div>
+    <div className="flex h-full w-full items-center justify-center text-[10px] text-[#999]">
+      Morven
+    </div>
   )
 );
 
@@ -115,29 +117,45 @@ function DiscoveryTile({ title, sub, product, accent, onClick }) {
       type="button"
       onClick={onClick}
       className={
-        "group relative flex h-[185px] min-w-0 flex-col overflow-hidden rounded-[9px] border px-2.5 pb-2.5 pt-3 text-left transition-all duration-200 hover:-translate-y-[1px] hover:shadow-[0_5px_16px_rgba(38,31,24,0.07)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#ff790f] sm:h-[176px] sm:px-3 " +
+        "group relative flex h-[224px] min-w-0 flex-col overflow-hidden rounded-[10px] border px-2.5 pb-2.5 pt-3 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_20px_rgba(38,31,24,0.09)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#ff790f] sm:h-[211px] sm:px-3 " +
         (accent
-          ? "border-[#ffc18b] bg-gradient-to-br from-[#fff1e5] via-[#ffd0a4] to-[#ffa65a]"
-          : "border-[#ebebeb] bg-white hover:border-[#efb78b]")
+          ? "border-[#e98b41] bg-gradient-to-br from-[#e86c21] via-[#f58a35] to-[#ffb16c]"
+          : "border-[#e9e8e6] bg-white hover:border-[#edb68a]")
       }
     >
-      <span className={"relative z-10 line-clamp-1 text-[11px] font-semibold leading-4 sm:text-[12px] " + (accent ? "text-[#e85f08]" : "text-[#252525]")}>
+      <span className={"relative z-10 line-clamp-1 text-[11px] font-semibold leading-4 sm:text-[12px] " + (accent ? "text-white" : "text-[#252525]")}>
         {title}
       </span>
-      <span className={"relative z-10 mt-0.5 line-clamp-1 text-[9px] sm:text-[10px] " + (accent ? "text-[#995e37]" : "text-[#858585]")}>
+      <span className={"relative z-10 mt-0.5 line-clamp-1 text-[9px] sm:text-[10px] " + (accent ? "text-white/90" : "text-[#858585]")}>
         {sub}
       </span>
-      <div className={"relative mt-2 flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-[6px] " +
-        (accent ? "bg-white/30" : "bg-[#f7f7f6]")}>
-        <div className="h-full w-full max-w-[165px] p-[3px] sm:max-w-[185px]">
+      <div
+        className={"relative mt-2 flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-[7px] " +
+          (accent
+            ? "bg-[#fff2e5]/80 ring-1 ring-white/40"
+            : "bg-[#f6f5f3]")}
+      >
+        {product?.image?.[0] && (
+          <Image
+            unoptimized
+            aria-hidden="true"
+            src={product.image[0]}
+            width={400}
+            height={560}
+            loading="lazy"
+            alt=""
+            className="pointer-events-none absolute inset-0 h-full w-full scale-110 object-cover opacity-[0.12] blur-xl"
+          />
+        )}
+        <div className="relative z-[1] h-full max-h-[172px] max-w-full overflow-hidden rounded-[5px] shadow-[0_2px_9px_rgba(40,26,15,0.09)] aspect-[3/4]">
           <TileImage product={product} alt={title}/>
         </div>
+        {accent && (
+          <span className="absolute bottom-2 right-2 z-10 flex items-center gap-1 rounded-full bg-[#26201c] px-2.5 py-1.5 text-[9px] font-semibold text-white shadow-[0_2px_8px_rgba(0,0,0,0.12)] transition-colors group-hover:bg-black sm:px-3">
+            Explore <ArrowRight/>
+          </span>
+        )}
       </div>
-      {accent && (
-        <span className="absolute bottom-3 right-3 z-10 rounded-full bg-[#ff6a00] px-3 py-1 text-[9px] font-semibold text-white shadow-sm transition group-hover:bg-[#ec6200]">
-          View more
-        </span>
-      )}
     </button>
   );
 }
@@ -324,7 +342,7 @@ export default function Home() {
             aria-label="Morven departments"
             className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-5 sm:gap-3"
           >
-            <div className="col-span-2 h-[185px] overflow-hidden rounded-[9px] border border-[#ebebeb] bg-white px-3 py-2.5 shadow-[0_2px_8px_rgba(0,0,0,0.025)] sm:col-span-1 sm:h-[176px]">
+            <div className="col-span-2 h-[224px] overflow-hidden rounded-[10px] border border-[#ebebeb] bg-white px-3 py-3 shadow-[0_2px_10px_rgba(0,0,0,0.03)] sm:col-span-1 sm:h-[211px]">
               <button
                 type="button"
                 onClick={() => selectCategory("")}
@@ -332,7 +350,7 @@ export default function Home() {
               >
                 <span>All Categories</span><ArrowRight/>
               </button>
-              <div className="max-h-[135px] space-y-0.5 overflow-y-auto pr-1 sm:max-h-[126px]">
+              <div className="max-h-[174px] space-y-0.5 overflow-y-auto pr-1 sm:max-h-[159px]">
                 {(categoryOptions.length ? categoryOptions : DEFAULT_CATEGORIES).map(([id, name]) => (
                   <button
                     type="button"
