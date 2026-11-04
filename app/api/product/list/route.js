@@ -6,7 +6,7 @@ export async function GET() {
     try {
         await connectDB();
 
-        const products = await Product.find({})
+        const products = await Product.find({ isActive: { $ne: false } })
             .sort({ date: -1 })
             .lean();
 
