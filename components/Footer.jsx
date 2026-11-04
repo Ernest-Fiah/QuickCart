@@ -43,7 +43,7 @@ export default function Footer() {
             <Link href="/contact" className="hover:text-[#7c2b3d]">Delivery Enquiries</Link>
             <Link href="/contact" className="hover:text-[#7c2b3d]">Returns & Exchanges</Link>
             <Link href="/contact" className="hover:text-[#7c2b3d]">Size Assistance</Link>
-            <Link href="/my-orders" className="hover:text-[#7c2b3d]">My Orders</Link>
+            <Link href="/contact" className="hover:text-[#7c2b3d]">Order Enquiries</Link>
           </nav>
         </div>
 
