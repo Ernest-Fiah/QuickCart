@@ -302,6 +302,7 @@ export default function Home() {
           </div>
           <form
             onSubmit={submitSearch}
+            onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) setShowSuggestions(false); }}
             role="search"
             className="relative z-30 mx-auto mt-1.5 max-w-[810px] rounded-[10px] border border-[#f58938] bg-white px-2.5 py-2 shadow-[0_5px_18px_rgba(151,80,24,0.08)] transition-shadow focus-within:shadow-[0_5px_22px_rgba(241,115,23,0.16)] sm:mt-2 sm:px-3 sm:py-2.5"
           >
@@ -314,7 +315,6 @@ export default function Home() {
                 value={searchInput}
                 onChange={e => { setSearchInput(e.target.value); setShowSuggestions(true); setSuggestionIndex(-1); }}
                 onFocus={() => setShowSuggestions(true)}
-                onBlur={() => setShowSuggestions(false)}
                 onKeyDown={e => {
                   if (!suggestionsVisible) return;
                   if (e.key === "Escape") { setShowSuggestions(false); setSuggestionIndex(-1); }
