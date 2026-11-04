@@ -9,8 +9,6 @@ import { useAppContext } from "@/context/AppContext";
 const ProductCard = ({ product }) => {
     const { currency, router } = useAppContext();
 
-    const rating = 4.5;
-
     const handleProductClick = () => {
         router.push("/product/" + product._id);
 
@@ -208,33 +206,6 @@ const ProductCard = ({ product }) => {
                 >
                     {product?.description}
                 </p>
-
-                {/* RATING */}
-                <div className="mt-1.5 flex items-center gap-1.5">
-                    <span className="text-[9px] font-medium text-gray-500">
-                        {rating}
-                    </span>
-
-                    <div className="flex items-center gap-[1px]">
-                        {Array.from({ length: 5 }).map(
-                            (_, index) => (
-                                <Image
-                                    key={index}
-                                    src={
-                                        index <
-                                        Math.floor(rating)
-                                            ? assets.star_icon
-                                            : assets.star_dull_icon
-                                    }
-                                    alt="star"
-                                    width={10}
-                                    height={10}
-                                    className="h-[10px] w-[10px]"
-                                />
-                            )
-                        )}
-                    </div>
-                </div>
 
                 {/* PRICE + BUY */}
                 <div
