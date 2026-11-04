@@ -156,7 +156,7 @@ export default function Product() {
             <div className="mx-auto flex min-h-[55vh] max-w-7xl flex-col items-center justify-center px-5 text-center">
                 <h1 className="text-2xl font-medium text-[#26231e]">Product not available</h1>
                 <p className="mt-3 text-sm text-[#77736e]">This item may have been removed or is temporarily unavailable.</p>
-                <Link href="/all-products" className="mt-7 bg-[#f26717] px-7 py-3 text-sm font-medium text-white">
+                <Link href="/all-products" className="mt-7 bg-[#7c273d] px-7 py-3 text-sm font-medium text-white">
                     Browse other products
                 </Link>
             </div>
@@ -223,11 +223,11 @@ export default function Product() {
         <>
             <div className="mx-auto w-full max-w-[1480px] px-4 pb-20 pt-5 text-[#272521] sm:px-6 lg:px-8 xl:px-10">
                 <nav aria-label="Breadcrumb" className="mb-6 flex flex-wrap items-center gap-2 text-[11px] text-[#807870]">
-                    <Link href="/" className="hover:text-[#e86720]">Home</Link>
+                    <Link href="/" className="hover:text-[#7c273d]">Home</Link>
                     <span>/</span>
-                    <Link href="/all-products" className="hover:text-[#e86720]">All Products</Link>
+                    <Link href="/all-products" className="hover:text-[#7c273d]">All Products</Link>
                     <span>/</span>
-                    <Link href={"/all-products?category=" + encodeURIComponent(category)} className="hover:text-[#e86720]">
+                    <Link href={"/all-products?category=" + encodeURIComponent(category)} className="hover:text-[#7c273d]">
                         {category}
                     </Link>
                     <span>/</span>
@@ -246,7 +246,7 @@ export default function Product() {
                                             aria-pressed={photoIndex === index}
                                             onClick={() => setPhotoIndex(index)}
                                             className={"aspect-[3/4] overflow-hidden border-2 bg-[#f8f7f4] " +
-                                                (photoIndex === index ? "border-[#f26717]" : "border-transparent hover:border-[#afa69d]")}>
+                                                (photoIndex === index ? "border-[#7c273d]" : "border-transparent hover:border-[#afa69d]")}>
                                             <Image unoptimized src={source} width={100} height={130} alt=""
                                                 className="h-full w-full object-contain" />
                                         </button>
@@ -283,7 +283,7 @@ export default function Product() {
                                     <button type="button" key={source + index} onClick={() => setPhotoIndex(index)}
                                         aria-label={"View photo " + (index + 1)}
                                         className={"h-20 w-16 shrink-0 overflow-hidden border-2 bg-[#f7f6f3] " +
-                                            (photoIndex === index ? "border-[#f26717]" : "border-transparent")}>
+                                            (photoIndex === index ? "border-[#7c273d]" : "border-transparent")}>
                                         <Image unoptimized src={source} width={80} height={100} alt="" className="h-full w-full object-contain" />
                                     </button>
                                 ))}
@@ -320,7 +320,7 @@ export default function Product() {
 
                     {/* The product title, product data and size picker remain dynamic. */}
                     <section className="lg:col-span-7 xl:col-span-5">
-                        <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#a56c4d]">
+                        <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#925a68]">
                             Morven Collection / {category}
                         </p>
                         <h1 className="mt-3 text-[23px] font-semibold leading-[1.35] tracking-[-0.025em] sm:text-[27px]">
@@ -329,8 +329,8 @@ export default function Product() {
                         {reviewData.count > 0 && (
                             <button type="button"
                                 onClick={() => { setTab("reviews"); document.getElementById("morven-reviews")?.scrollIntoView({ behavior: "smooth" }); }}
-                                className="mt-3 flex items-center gap-2 text-[12px] hover:text-[#d8661e]">
-                                <span className="text-[#f08427]">{"★".repeat(Math.round(reviewData.average))}</span>
+                                className="mt-3 flex items-center gap-2 text-[12px] hover:text-[#7c273d]">
+                                <span className="text-[#a95d54]">{"★".repeat(Math.round(reviewData.average))}</span>
                                 <span>{Number(reviewData.average).toFixed(1)} / 5</span>
                                 <span className="text-[#8d8379]">({reviewData.count} verified reviews)</span>
                             </button>
@@ -408,7 +408,7 @@ export default function Product() {
                             )}
                             <button type="button" disabled={adding || (sizeRequired && !size)}
                                 onClick={() => cartAction(true)}
-                                className="mt-5 w-full rounded-full bg-[#f26717] px-5 py-3 text-[12px] font-semibold text-white hover:bg-[#d95611] disabled:cursor-not-allowed disabled:opacity-45">
+                                className="mt-5 w-full rounded-full bg-[#7c273d] px-5 py-3 text-[12px] font-semibold text-white hover:bg-[#622030] disabled:cursor-not-allowed disabled:opacity-45">
                                 {adding ? "Adding to bag..." : "Buy now"}
                             </button>
                             <button type="button" disabled={adding || (sizeRequired && !size)}
@@ -444,7 +444,7 @@ export default function Product() {
                             <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#ac7557]">Explore Morven</p>
                             <h2 id="other-products" className="text-xl font-semibold tracking-[-0.02em] sm:text-2xl">Other Products</h2>
                         </div>
-                        <Link href="/all-products" className="inline-flex items-center gap-1 text-[12px] font-medium hover:text-[#e86720]">
+                        <Link href="/all-products" className="inline-flex items-center gap-1 text-[12px] font-medium hover:text-[#7c273d]">
                             View all <Arrow />
                         </Link>
                     </div>
@@ -477,7 +477,7 @@ export default function Product() {
                         ].map((entry) => (
                             <button key={entry.id} type="button" onClick={() => setTab(entry.id)}
                                 className={"border-b-2 pb-4 text-[13px] font-semibold " +
-                                    (tab === entry.id ? "border-[#f26717] text-[#292521]" : "border-transparent text-[#918980]")}>
+                                    (tab === entry.id ? "border-[#7c273d] text-[#292521]" : "border-transparent text-[#918980]")}>
                                 {entry.label}
                             </button>
                         ))}
@@ -502,7 +502,7 @@ export default function Product() {
                             <p className="text-[13px] leading-[1.85] text-[#716a63]">
                                 Contact Morven for help with fit, availability and delivery options.
                             </p>
-                            <Link href="/contact" className="mt-3 inline-flex items-center gap-2 text-[12px] font-semibold text-[#e86720]">
+                            <Link href="/contact" className="mt-3 inline-flex items-center gap-2 text-[12px] font-semibold text-[#7c273d]">
                                 Contact Morven <Arrow />
                             </Link>
                         </div>
@@ -530,7 +530,7 @@ export default function Product() {
                                     {reviewData.reviews.map((review) => (
                                         <article key={review._id} className="py-5">
                                             <div className="flex flex-wrap items-center gap-2">
-                                                <span className="text-[13px] font-semibold text-[#ec721e]">{"★".repeat(review.rating)}</span>
+                                                <span className="text-[13px] font-semibold text-[#a95d54]">{"★".repeat(review.rating)}</span>
                                                 <span className="text-[12px] font-semibold text-[#3b352e]">{review.displayName || "Verified customer"}</span>
                                                 <span className="rounded-sm bg-[#f1f8ef] px-2 py-1 text-[10px] text-[#42763b]">Verified purchase</span>
                                             </div>
@@ -556,7 +556,7 @@ export default function Product() {
                                         placeholder="How was the quality, fit and overall experience?"
                                         className="w-full border border-[#d8d3cb] bg-white p-3 text-[13px] outline-none focus:border-[#ef742b]" />
                                     <button type="submit" disabled={reviewSubmitting}
-                                        className="rounded-full bg-[#f26717] px-6 py-2.5 text-[12px] font-semibold text-white disabled:opacity-50">
+                                        className="rounded-full bg-[#7c273d] px-6 py-2.5 text-[12px] font-semibold text-white disabled:opacity-50">
                                         {reviewSubmitting ? "Submitting..." : "Post verified review"}
                                     </button>
                                 </form>
