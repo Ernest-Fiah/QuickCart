@@ -172,9 +172,10 @@ const ProductList = () => {
                       <Image
                         src={product.image[0]}
                         alt="product Image"
-                        className="w-16"
-                        width={1280}
-                        height={720}
+                        className="h-20 w-16 object-contain"
+                         width={128}
+                         height={160}
+                         unoptimized
                       />
 
                     </div>
