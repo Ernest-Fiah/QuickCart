@@ -1,397 +1,362 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import Footer from "@/components/Footer";
 import { useAppContext } from "@/context/AppContext";
 
-// The two existing Morven navbars are rendered in app/layout.js.
-// This page recreates the compact marketplace layout UNDER those navbars.
-
-const DISPLAY_CATEGORIES = [
-  "SUIT", "SHIRT", "TROUSERS", "JACKET", "T-SHIRT",
-  "SHOE", "ACCESSORY", "KNITWEAR", "TUXEDO", "OUTERWEAR",
+// The TWO existing Morven navbars are rendered by app/layout.js.
+// Keep this page underneath them. All apparel imagery and prices come from real uploaded products.
+const CATEGORIES = [
+  "SUIT", "SHIRT", "JACKET", "TROUSERS", "T-SHIRT",
+  "KNITWEAR", "SWEATSHIRT", "OUTERWEAR", "SHOE",
+  "ACCESSORY", "TUXEDO", "COMBINATIONS", "NEW ARRIVALS", "OUTLET",
 ];
-
-const formatPrice = (price, symbol) => {
-  const value = Number(price);
-  if (!Number.isFinite(value)) return "Enquire for price";
-  return symbol + value.toLocaleString("en-GH", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
+const CATEGORY_LABELS = {
+  SUIT: "Suits", SHIRT: "Shirts", JACKET: "Jackets", TROUSERS: "Trousers",
+  "T-SHIRT": "T-Shirts & Polos", KNITWEAR: "Knitwear",
+  SWEATSHIRT: "Sweatshirts", OUTERWEAR: "Outerwear",
+  SHOE: "Shoes", ACCESSORY: "Accessories", TUXEDO: "Tuxedos",
+  COMBINATIONS: "Combinations", "NEW ARRIVALS": "New Arrivals", OUTLET: "Outlet",
 };
-
-const SearchIcon = () => (
-  <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-    strokeWidth="1.8" className="h-4 w-4 shrink-0">
-    <circle cx="10.5" cy="10.5" r="6.5" />
-    <path d="m15.5 15.5 5 5" />
-  </svg>
-);
-
-const Chevron = () => (
-  <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-    strokeWidth="1.9" className="h-3 w-3 shrink-0">
-    <path d="m9 5 7 7-7 7" />
-  </svg>
-);
-
-const CategorySymbol = ({ value }) => {
-  const icons = {
-    SUIT: "♧", SHIRT: "▤", TROUSERS: "▥", JACKET: "◇",
-    "T-SHIRT": "▧", SHOE: "◉", ACCESSORY: "✧",
-    KNITWEAR: "▦", TUXEDO: "◆", OUTERWEAR: "◈",
+const MONEY = (value, currency) => {
+  if (!Number.isFinite(Number(value))) return "Price on request";
+  return currency + Number(value).toLocaleString("en-GH", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+};
+const Icon = ({ name, size = 17 }) => {
+  const paths = {
+    search: <><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4.5 4.5"/></>,
+    chevron: <path d="m9 5 7 7-7 7"/>,
+    bag: <><path d="M5 8h14l-1 12H6L5 8Z"/><path d="M9 9V6a3 3 0 0 1 6 0v3"/></>,
+    shield: <><path d="m12 2 8 3v6c0 5-3 8-8 11C7 19 4 16 4 11V5l8-3Z"/><path d="m8.5 12 2.5 2.5 4.5-5"/></>,
+    truck: <><path d="M2 5h12v12H2zM14 9h4l4 4v4h-8z"/><circle cx="6" cy="18" r="2"/><circle cx="18" cy="18" r="2"/></>,
+    location: <><path d="M12 22s7-6 7-12a7 7 0 0 0-14 0c0 6 7 12 7 12Z"/><circle cx="12" cy="10" r="2.5"/></>,
+    arrow: <><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></>,
   };
-  return <span aria-hidden="true" className="w-4 shrink-0 text-center text-[13px] text-[#7d7771]">
-    {icons[value] || "·"}
-  </span>;
+  return <svg aria-hidden="true" viewBox="0 0 24 24" width={size} height={size}
+    fill="none" stroke="currentColor" strokeWidth="1.65" strokeLinecap="round" strokeLinejoin="round">
+    {paths[name] || paths.chevron}
+  </svg>;
 };
 
-const CatalogCard = ({ product, currency }) => (
-  <Link href={"/product/" + product._id}
-    className="group block min-w-0 overflow-hidden rounded-[4px] border border-[#ececec] bg-white p-[5px] transition-colors hover:border-[#ffad7d] hover:shadow-[0_3px_12px_rgba(0,0,0,0.07)]">
-    <div className="relative aspect-square w-full overflow-hidden rounded-[3px] bg-[#f4f4f4]">
-      {product.image?.[0] ? (
-        <Image
-          unoptimized
-          src={product.image[0]}
-          width={330}
-          height={330}
-          alt={product.name || "Morven clothing"}
-          loading="lazy"
-          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.045]"
-        />
-      ) : (
-        <div className="flex h-full w-full items-center justify-center text-[10px] text-[#aaa]">
-          Image unavailable
-        </div>
-      )}
-      <span className="absolute bottom-1.5 left-1.5 rounded-full border border-white/80 bg-white/90 px-[5px] py-[2px] text-[8px] font-semibold tracking-[0.04em] text-[#50483f]">
-        Morven
-      </span>
+const ProductPhoto = ({ product, className = "", priority = false }) =>
+  product?.image?.[0] ? (
+    <Image unoptimized src={product.image[0]} width={500} height={580} priority={priority}
+      loading={priority ? undefined : "lazy"} alt={product.name || "Morven product"}
+      className={"h-full w-full object-contain " + className} />
+  ) : (
+    <div className="flex h-full w-full items-center justify-center bg-[#f3f0eb] text-[11px] text-[#a4a09b]">
+      Image coming soon
     </div>
-    <div className="px-[2px] pb-[4px] pt-[5px]">
-      <p className="line-clamp-2 min-h-[29px] text-[10px] font-normal leading-[14px] text-[#333333] sm:text-[11px]">
-        {product.name}
-      </p>
-      <p className="mt-1 truncate text-[12px] font-bold leading-[16px] tracking-[-0.015em] text-[#1c1c1c] sm:text-[13px]">
-        {formatPrice(product.offerPrice, currency)}
-      </p>
-      {Number(product.price) > Number(product.offerPrice) && (
-        <p className="mt-0.5 truncate text-[9px] leading-3 text-[#999] line-through">
-          {formatPrice(product.price, currency)}
-        </p>
-      )}
-      <p className="mt-[3px] truncate text-[9px] leading-3 text-[#777]">
-        {product.category || "Morven Collection"}
-      </p>
-    </div>
-  </Link>
-);
-
-const QuickTile = ({ title, subtitle, product, category, onSelect, orange = false }) => (
-  <button
-    type="button"
-    onClick={() => onSelect(category)}
-    className={
-      "group relative flex h-[174px] min-w-0 flex-col overflow-hidden rounded-[5px] border p-[9px] text-left transition-colors " +
-      (orange
-        ? "border-[#ffd2b8] bg-gradient-to-br from-[#ffeadc] via-[#ffaf71] to-[#ff6a00]"
-        : "border-[#ececec] bg-[#fafafa] hover:border-[#ffad7d]")
-    }
-  >
-    <span className={"relative z-10 line-clamp-1 text-[11px] font-bold leading-4 " +
-      (orange ? "text-[#ee5700]" : "text-[#333]")}>
-      {title}
-    </span>
-    <span className={"relative z-10 mt-[2px] line-clamp-1 text-[9px] " +
-      (orange ? "text-[#a85124]" : "text-[#999]")}>
-      {subtitle}
-    </span>
-    {product?.image?.[0] ? (
-      <Image
-        unoptimized
-        src={product.image[0]}
-        alt={product.name || title}
-        width={220}
-        height={220}
-        loading="lazy"
-        className="mx-auto mt-2 h-[95px] w-[100%] max-w-[175px] object-contain transition-transform group-hover:scale-[1.045]"
-      />
-    ) : (
-      <span className="mt-6 text-[11px] text-[#b5afa9]">Browse Morven</span>
-    )}
-    {orange && (
-      <span className="absolute bottom-2 right-2 rounded-full bg-[#f56907] px-3 py-1.5 text-[10px] font-semibold text-white shadow-sm">
-        View more
-      </span>
-    )}
-  </button>
-);
-
-export default function Home() {
-  const { products, productsLoading, currency } = useAppContext();
-  const [input, setInput] = useState("");
-  const [search, setSearch] = useState("");
-  const [category, setCategory] = useState("");
-  const [view, setView] = useState("products");
-  const [visible, setVisible] = useState(120);
-
-  const catalog = useMemo(() => (
-    Array.isArray(products) ? products.filter((item) => item?._id) : []
-  ), [products]);
-
-  const categories = useMemo(() => {
-    const available = [...new Set(catalog.map((item) => String(item.category || "").trim()))]
-      .filter(Boolean);
-    return [
-      ...DISPLAY_CATEGORIES.filter((item) => available.some(
-        (name) => name.toLowerCase() === item.toLowerCase()
-      )),
-      ...available.filter((item) => !DISPLAY_CATEGORIES.includes(item.toUpperCase())),
-    ];
-  }, [catalog]);
-
-  const findCategoryItem = (name) => (
-    catalog.find((item) =>
-      String(item.category || "").toUpperCase() === name &&
-      item.image?.[0]
-    ) || catalog.find((item) => item.image?.[0])
   );
 
-  const tiles = [
-    { title: "Browse Morven", subtitle: "Explore new additions", category: "", product: catalog[0] },
-    { title: "Keep looking for", subtitle: "Premium suits & sets", category: "SUIT", product: findCategoryItem("SUIT") },
-    { title: "Explore styles", subtitle: "Shirts & accessories", category: "SHIRT", product: findCategoryItem("SHIRT") },
-    { title: "Featured products", subtitle: "Discover our selection", category: "", product: findCategoryItem("JACKET"), orange: true },
-  ];
+const ProductCard = ({ product, currency }) => {
+  const price = Number(product?.offerPrice);
+  const regular = Number(product?.price);
+  const discount = Number.isFinite(price) && Number.isFinite(regular) &&
+    regular > price && regular > 0 ? Math.round((1 - price / regular) * 100) : 0;
+  return (
+    <Link href={"/product/" + product._id}
+      className="group block min-w-0 overflow-hidden rounded-lg border border-[#eae4dc] bg-white p-2 transition hover:-translate-y-[2px] hover:border-[#cfa999] hover:shadow-[0_9px_25px_rgba(47,25,30,0.075)]">
+      <div className="relative aspect-[4/4.7] overflow-hidden rounded-md bg-[#f5f2ee]">
+        <ProductPhoto product={product}
+          className="transition-transform duration-500 group-hover:scale-[1.055]"/>
+        <span className="absolute bottom-2 left-2 rounded bg-white/95 px-2 py-1 text-[9px] font-medium text-[#43262e]">
+          Morven
+        </span>
+      </div>
+      <div className="min-w-0 px-1 pb-1 pt-2">
+        <h3 className="line-clamp-2 min-h-[33px] text-[11px] font-medium leading-[1.5] text-[#2c2927]">
+          {product.name}
+        </h3>
+        <div className="mt-1 flex flex-wrap items-center gap-1.5">
+          <strong className="text-[12px] font-semibold tracking-tight text-[#6e2739] sm:text-[13px]">
+            {MONEY(product.offerPrice, currency)}
+          </strong>
+          {discount > 0 && <span className="rounded-sm bg-[#f5e6e0] px-1.5 py-0.5 text-[9px] font-bold text-[#943c45]">-{discount}%</span>}
+        </div>
+        {discount > 0 && <p className="mt-0.5 truncate text-[9px] text-[#9c958e] line-through">{MONEY(product.price, currency)}</p>}
+        <p className="mt-1.5 truncate text-[10px] text-[#978a82]">{CATEGORY_LABELS[product.category] || product.category}</p>
+      </div>
+    </Link>
+  );
+};
 
-  const filtered = useMemo(() => {
-    const phrase = search.trim().toLowerCase();
-    let items = catalog.filter((item) => {
-      const matchesCategory = !category ||
-        String(item.category || "").toLowerCase() === category.toLowerCase();
-      const matchesSearch = !phrase ||
-        [item.name, item.description, item.category].some((field) =>
-          String(field || "").toLowerCase().includes(phrase)
-        );
-      return matchesCategory && matchesSearch;
-    });
-    if (view === "new") {
-      items = [...items].sort((a, b) => Number(b.date || 0) - Number(a.date || 0));
-    }
-    return items;
-  }, [catalog, category, search, view]);
+export default function Home() {
+  const { products, productsLoading, fetchProductData, currency } = useAppContext();
+  const [input, setInput] = useState("");
+  const [query, setQuery] = useState("");
+  const [category, setCategory] = useState("");
+  const [tab, setTab] = useState("Products");
+  const [heroIndex, setHeroIndex] = useState(0);
+  const [visible, setVisible] = useState(36);
+  const sentinel = useRef(null);
 
-  const setFilter = (nextCategory) => {
-    setCategory(nextCategory);
-    setSearch("");
+  // Refresh the product catalog whenever visitors return from the seller upload page.
+  useEffect(() => { fetchProductData(); }, []);
+  const catalog = useMemo(() => Array.isArray(products)
+    ? products.filter(p => p?._id)
+    : [], [products]);
+  const byCategory = (wanted) => catalog.find(p =>
+    String(p.category || "").toUpperCase() === wanted && p?.image?.[0]);
+  const heroProducts = useMemo(() => {
+    const withImages = catalog.filter(p => p?.image?.[0]);
+    return [byCategory("SUIT"), byCategory("SHIRT"), byCategory("JACKET")]
+      .filter((p, i, a) => p && a.findIndex(x => x._id === p._id) === i)
+      .concat(withImages).filter((p, i, a) => a.findIndex(x => x._id === p._id) === i)
+      .slice(0, 3);
+  }, [catalog]);
+  const heroProduct = heroProducts[heroIndex % (heroProducts.length || 1)];
+  const shirtProduct = byCategory("SHIRT") || catalog.find(p => p?.image?.[0]);
+  const categoriesWithImages = CATEGORIES
+    .filter(c => catalog.some(p => String(p.category || "").toUpperCase() === c && p?.image?.[0]))
+    .slice(0, 8);
+  const sorted = useMemo(() => [...catalog].sort((a, b) =>
+    Number(b.date || 0) - Number(a.date || 0)), [catalog]);
+  const filtered = useMemo(() => sorted.filter(p => {
+    const cat = String(p.category || "").toUpperCase();
+    const catMatch = !category || cat === category;
+    const term = query.toLowerCase().trim();
+    const searchMatch = !term || [p.name, p.category, p.description].some(x =>
+      String(x || "").toLowerCase().includes(term));
+    return catMatch && searchMatch;
+  }), [sorted, category, query]);
+  const displayed = filtered.slice(0, visible);
+
+  useEffect(() => setVisible(36), [query, category]);
+  // Continuous Alibaba-style feed. Each batch loads as the visitor scrolls.
+  useEffect(() => {
+    if (visible >= filtered.length || !sentinel.current) return;
+    const observer = new IntersectionObserver(entries => {
+      if (entries[0]?.isIntersecting) setVisible(v => Math.min(v + 36, filtered.length));
+    }, { rootMargin: "600px 0px" });
+    observer.observe(sentinel.current);
+    return () => observer.disconnect();
+  }, [visible, filtered.length]);
+  useEffect(() => {
+    if (heroProducts.length < 2) return;
+    const interval = setInterval(() => setHeroIndex(i => (i + 1) % heroProducts.length), 6500);
+    return () => clearInterval(interval);
+  }, [heroProducts.length]);
+
+  const scrollToFeed = () => document.getElementById("morven-feed")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  const applyCategory = value => {
+    setCategory(value);
+    setQuery("");
     setInput("");
-    setVisible(120);
-    document.getElementById("morven-product-grid")?.scrollIntoView({
-      behavior: "smooth", block: "start",
-    });
+    scrollToFeed();
   };
-
-  const submitSearch = (event) => {
+  const search = event => {
     event.preventDefault();
-    setSearch(input);
+    setQuery(input);
     setCategory("");
-    setVisible(120);
-    document.getElementById("morven-product-grid")?.scrollIntoView({
-      behavior: "smooth", block: "start",
-    });
+    scrollToFeed();
   };
-
-  const selectTab = (nextView) => {
-    setView(nextView);
-    setCategory("");
-    setSearch("");
-    setInput("");
-    setVisible(120);
-    if (nextView === "collections") {
-      document.getElementById("morven-category-row")?.scrollIntoView({
-        behavior: "smooth", block: "center",
-      });
-    }
-    if (nextView === "new") {
-      document.getElementById("morven-product-grid")?.scrollIntoView({
-        behavior: "smooth", block: "start",
-      });
+  const selectTab = name => {
+    setTab(name);
+    if (name === "New Arrivals" || name === "Products") {
+      setCategory("");
+      setQuery("");
+      scrollToFeed();
+    } else if (name === "Collections") {
+      document.getElementById("morven-collections")?.scrollIntoView({ behavior: "smooth" });
+    } else {
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
 
   return (
     <>
-      <div className="min-h-screen bg-[#f7f7f7] text-[#252525]">
-        {/* The site-wide Navbar and FashionNavbar are intentionally NOT repeated here. */}
-        <div className="mx-auto max-w-[1510px] px-[10px] pb-16 pt-[5px] sm:px-4 lg:px-6">
-          {/* Compact centered marketplace tabs, like the reference screenshot. */}
-          <div className="flex h-[37px] items-center justify-center gap-4 text-[12px] font-bold sm:gap-7 sm:text-[14px]">
-            <button type="button" onClick={() => selectTab("discover")}
-              className={view === "discover" ? "text-[#f66a00]" : "text-[#333] hover:text-[#f66a00]"}>
-              Discover
-            </button>
-            <span className="text-[#e5e5e5]">|</span>
-            <button type="button" onClick={() => selectTab("products")}
-              className={view === "products" ? "text-[#ff6a00]" : "text-[#333] hover:text-[#ff6a00]"}>
-              Products
-            </button>
-            <span className="text-[#e5e5e5]">|</span>
-            <button type="button" onClick={() => selectTab("collections")}
-              className={view === "collections" ? "text-[#ff6a00]" : "text-[#333] hover:text-[#ff6a00]"}>
-              Collections
-            </button>
-            <span className="text-[#e5e5e5]">|</span>
-            <button type="button" onClick={() => selectTab("new")}
-              className={view === "new" ? "text-[#ff6a00]" : "text-[#333] hover:text-[#ff6a00]"}>
-              New Arrivals
-            </button>
-          </div>
-
-          {/* The small orange-outlined search card is a key part of the reference. */}
-          <form onSubmit={submitSearch} role="search"
-            className="mx-auto mt-2 w-full max-w-[830px] rounded-[7px] border-2 border-[#ff812a] bg-white p-[7px] shadow-[0_2px_9px_rgba(255,106,0,0.10)]">
-            <div className="flex h-[35px] items-center gap-[8px]">
-              <span className="ml-[5px] text-[#858585]"><SearchIcon /></span>
-              <input
-                type="search"
-                value={input}
-                onChange={(event) => setInput(event.target.value)}
-                placeholder="What are you looking for?"
-                aria-label="Search Morven products"
-                className="h-full w-full min-w-0 flex-1 border-none bg-transparent text-[12px] text-[#333] outline-none placeholder:text-[#999]"
-              />
-              <button type="submit"
-                className="h-[30px] shrink-0 rounded-full bg-[#ff6a00] px-[21px] text-[11px] font-bold text-white hover:bg-[#e65e00]">
-                Search
-              </button>
-            </div>
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-[#f3f3f3] pt-[6px] text-[9px] text-[#777]">
-              <span className="font-semibold text-[#999]">Popular searches</span>
-              {["SUIT", "SHIRT", "TROUSERS", "SHOE"].map((name) => (
-                <button type="button" key={name}
-                  onClick={() => setFilter(name)}
-                  className="text-[#555] hover:text-[#ff6a00]">
-                  {name.toLowerCase()}
+      <div className="min-h-screen bg-[#faf8f5] text-[#2c2827]">
+        <div className="mx-auto max-w-[1520px] px-3 pb-20 pt-3 sm:px-5 lg:px-7">
+          {/* Morven marketplace search, below the existing TWO navbars */}
+          <div className="mx-auto max-w-[940px]">
+            <div className="flex flex-wrap justify-center gap-5 border-b border-[#eee7e1] py-2 text-[12px] font-semibold sm:gap-9">
+              {["Discover", "Products", "Collections", "New Arrivals"].map(name => (
+                <button type="button" key={name} onClick={() => selectTab(name)}
+                  className={"border-b-2 pb-3 transition " + (tab === name
+                    ? "border-[#832d43] text-[#832d43]"
+                    : "border-transparent text-[#3f3836] hover:text-[#832d43]")}>
+                  {name}
                 </button>
               ))}
             </div>
-          </form>
+            <form role="search" onSubmit={search}
+              className="mt-3 flex items-center gap-2 rounded-full border-2 border-[#894052] bg-white p-[5px] shadow-[0_5px_16px_rgba(91,39,53,0.06)]">
+              <div className="pl-3 text-[#8b817b]"><Icon name="search" /></div>
+              <input type="search" value={input} onChange={e => setInput(e.target.value)}
+                aria-label="Search Morven products"
+                placeholder="Search suits, shirts, jackets, trousers and more..."
+                className="min-w-0 flex-1 border-none bg-transparent px-1 py-2.5 text-[12px] outline-none placeholder:text-[#a39a92] sm:text-[13px]"/>
+              <button type="submit" className="shrink-0 rounded-full bg-[#7c273d] px-5 py-2.5 text-[11px] font-bold text-white hover:bg-[#5f1f30] sm:px-8">
+                Search
+              </button>
+            </form>
+            <div className="mt-2 flex flex-wrap justify-center gap-x-3 gap-y-1 text-[10px] text-[#8d827b]">
+              <span>Popular searches:</span>
+              {["Suits", "Shirts", "Trousers", "Shoes", "Accessories"].map((name, i) => (
+                <button type="button" key={name} onClick={() => applyCategory(["SUIT", "SHIRT", "TROUSERS", "SHOE", "ACCESSORY"][i])}
+                  className="underline-offset-2 hover:text-[#832d43] hover:underline">{name}</button>
+              ))}
+            </div>
+          </div>
 
-          {/* Three narrow feature strips; do not invent supplier ratings or sales statistics. */}
-          <div className="mt-9 grid grid-cols-1 divide-y border-y border-[#eeeeee] bg-white py-[5px] sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+          <div className="mt-6 grid gap-2 border-y border-[#ece7e0] bg-white p-3 sm:grid-cols-3 sm:divide-x sm:divide-[#ede7e0]">
             {[
-              ["🇬🇭", "Morven Ghana", "Menswear collections in Ghana"],
-              ["✦", "Paystack checkout", "Pay with the existing secure payment flow"],
-              ["▣", "Suits, shirts and more", "Explore products from the Morven catalog"],
-            ].map(([symbol, title, description]) => (
-              <div key={title} className="flex min-w-0 items-center gap-3 px-3 py-[6px] sm:px-5">
-                <span className="text-[19px] leading-none text-[#ff6a00]">{symbol}</span>
+              { icon: "location", title: "🇬🇭 Morven Ghana", text: "Spintex, Accra, Ghana" },
+              { icon: "shield", title: "Secure checkout", text: "Complete orders with Paystack" },
+              { icon: "bag", title: "Premium menswear", text: "Browse suits, shirts, shoes & accessories" },
+            ].map(item => (
+              <div key={item.title} className="flex items-center gap-3 px-2 py-1.5 sm:px-4">
+                <span className="text-[#903d50]"><Icon name={item.icon} size={23}/></span>
                 <div className="min-w-0">
-                  <h2 className="truncate text-[11px] font-semibold text-[#333]">{title}</h2>
-                  <p className="mt-[2px] truncate text-[9px] text-[#8b8b8b]">{description}</p>
+                  <h2 className="text-[11px] font-semibold">{item.title}</h2>
+                  <p className="mt-0.5 truncate text-[10px] text-[#938a84]">{item.text}</p>
                 </div>
               </div>
             ))}
           </div>
 
-          {/* Screenshot-style row: 1 compact categories panel + 4 product tiles. */}
-          <section id="morven-category-row"
-            aria-label="Browse product categories"
-            className="mt-[13px] grid grid-cols-2 gap-[8px] sm:grid-cols-5">
-            <div className="col-span-2 h-[174px] overflow-hidden rounded-[5px] border border-[#ececec] bg-white p-[8px] sm:col-span-1">
-              <button type="button" onClick={() => setFilter("")}
-                className="mb-[5px] flex w-full items-center justify-between border-b border-[#eeeeee] pb-[7px] text-left text-[11px] font-semibold text-[#333] hover:text-[#ff6a00]">
-                <span>All Categories</span><Chevron />
-              </button>
-              <div className="max-h-[130px] space-y-[1px] overflow-y-auto">
-                {(categories.length ? categories : DISPLAY_CATEGORIES).slice(0, 8).map((name) => (
-                  <button type="button" key={name} onClick={() => setFilter(name)}
-                    className={"flex w-full items-center gap-[5px] rounded-[3px] px-[3px] py-[3px] text-left text-[10px] leading-[15px] hover:bg-[#fff3e9] " +
-                      (category === name ? "bg-[#fff1e8] text-[#ff6a00]" : "text-[#5e5e5e]")}>
-                    <CategorySymbol value={name} />
-                    <span className="min-w-0 flex-1 truncate">{name}</span>
-                    <Chevron />
+          {/* Main Alibaba-like category rail + premium product hero + promotional tile */}
+          <section className="mt-3 grid gap-3 lg:grid-cols-[205px_minmax(0,1fr)_235px]" aria-label="Featured Morven collections">
+            <aside className="rounded-lg border border-[#e8e1da] bg-white p-3">
+              <h2 className="mb-3 border-b border-[#eee8e2] pb-2 text-[13px] font-semibold">All Categories</h2>
+              <div className="grid grid-cols-2 gap-0.5 sm:grid-cols-3 lg:grid-cols-1">
+                {CATEGORIES.map(cat => (
+                  <button type="button" key={cat} onClick={() => applyCategory(cat)}
+                    className={"flex min-w-0 items-center justify-between gap-2 rounded px-2 py-[6px] text-left text-[11px] transition " +
+                      (category === cat ? "bg-[#f6e9e6] text-[#7c273d]" : "hover:bg-[#f9f3ef] hover:text-[#7c273d]")}>
+                    <span className="truncate">{CATEGORY_LABELS[cat] || cat}</span><span className="text-[#9e928a]"><Icon name="chevron" size={12}/></span>
                   </button>
                 ))}
               </div>
+            </aside>
+
+            <div className="relative min-h-[290px] overflow-hidden rounded-xl bg-gradient-to-br from-[#40202a] via-[#612a3a] to-[#9b5e58] text-white sm:min-h-[350px]">
+              <div className="pointer-events-none absolute -right-20 -top-28 h-80 w-80 rounded-full border-[44px] border-white/5"/>
+              <div className="pointer-events-none absolute -bottom-24 left-1/4 h-64 w-64 rounded-full bg-[#d9a989]/10 blur-3xl"/>
+              {heroProduct && (
+                <div className="absolute bottom-0 right-0 top-0 w-[53%] overflow-hidden">
+                  <ProductPhoto product={heroProduct} priority
+                    className="object-contain object-bottom drop-shadow-[0_20px_32px_rgba(0,0,0,0.24)]"/>
+                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#572a35]/70 via-transparent to-transparent"/>
+                </div>
+              )}
+              <div className="relative z-10 flex h-full max-w-[67%] flex-col items-start justify-center px-6 py-10 sm:max-w-[62%] sm:px-10">
+                <span className="text-[10px] font-medium uppercase tracking-[0.22em] text-[#e7c2ad]">Morven Menswear · Ghana</span>
+                <h1 className="mt-4 max-w-sm font-serif text-[29px] leading-[1.1] tracking-[-0.02em] sm:text-[40px]">
+                  {heroIndex % 3 === 1 ? "Everyday Style, Elevated." : heroIndex % 3 === 2 ? "Refined For Every Occasion." : "Premium Suit Collection."}
+                </h1>
+                <p className="mt-3 max-w-[300px] text-[11px] leading-5 text-[#f0dcd6] sm:text-[13px]">
+                  Discover the latest pieces in our collection and find your signature look.
+                </p>
+                <Link href={heroProduct ? "/product/" + heroProduct._id : "/all-products"}
+                  className="mt-6 inline-flex items-center gap-3 rounded-md bg-[#fcf6ef] px-5 py-2.5 text-[11px] font-semibold text-[#6a2939] shadow hover:bg-white">
+                  Shop Now <Icon name="arrow" size={14}/>
+                </Link>
+              </div>
+              {heroProducts.length > 1 && (
+                <>
+                  <button type="button" aria-label="Previous feature"
+                    onClick={() => setHeroIndex(i => (i - 1 + heroProducts.length) % heroProducts.length)}
+                    className="absolute left-3 top-1/2 z-20 hidden h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-white/80 text-[#562733] sm:flex">
+                    <span className="rotate-180"><Icon name="chevron"/></span>
+                  </button>
+                  <button type="button" aria-label="Next feature"
+                    onClick={() => setHeroIndex(i => (i + 1) % heroProducts.length)}
+                    className="absolute right-3 top-1/2 z-20 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-white/85 text-[#562733]">
+                    <Icon name="chevron"/>
+                  </button>
+                  <div className="absolute bottom-3 left-1/2 z-20 flex -translate-x-1/2 gap-1.5">
+                    {heroProducts.map((p, i) => (
+                      <button type="button" key={p._id} onClick={() => setHeroIndex(i)}
+                        aria-label={"Show featured item " + (i + 1)}
+                        className={"h-[6px] rounded-full " + (i === heroIndex ? "w-5 bg-[#f1c5aa]" : "w-[6px] bg-white/60")}/>
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
-            {tiles.map((tile) => (
-              <QuickTile key={tile.title} {...tile} onSelect={setFilter} />
-            ))}
+
+            <Link href={shirtProduct ? "/product/" + shirtProduct._id : "/all-products"}
+              className="group relative flex min-h-[240px] flex-col overflow-hidden rounded-xl border border-[#ece3dc] bg-gradient-to-b from-[#f7eeea] to-[#e5d4cb] p-5 sm:min-h-[290px]">
+              <h2 className="relative z-10 max-w-[160px] font-serif text-[25px] font-semibold leading-tight text-[#422d31]">Shirt Collection</h2>
+              <p className="relative z-10 mt-2 max-w-[160px] text-[11px] leading-5 text-[#6e5a55]">Essential styles for work and everyday confidence.</p>
+              {shirtProduct && <div className="absolute bottom-0 right-0 h-[70%] w-[67%]">
+                <ProductPhoto product={shirtProduct} className="object-contain object-bottom transition-transform duration-500 group-hover:scale-105"/>
+              </div>}
+              <span className="relative z-10 mt-auto inline-flex items-center gap-1 text-[11px] font-semibold text-[#852d42]">
+                Shop Shirts <Icon name="arrow" size={13}/>
+              </span>
+            </Link>
           </section>
 
-          {/* Dense, six-column feed starts directly under the category cards. */}
-          <section id="morven-product-grid" aria-label="Morven products"
-            className="scroll-mt-40 pt-[9px]">
-            {(category || search || view === "new") && (
-              <div className="mb-[8px] flex flex-wrap items-center justify-between gap-2 rounded-[4px] bg-white px-3 py-2 text-[11px]">
-                <p className="font-semibold">
-                  {search ? "Search results for “" + search + "”"
-                    : category || (view === "new" ? "New Arrivals" : "All Products")}
-                  <span className="ml-2 font-normal text-[#777]">({filtered.length} products)</span>
-                </p>
-                <button type="button"
-                  onClick={() => { setSearch(""); setInput(""); setCategory(""); setView("products"); }}
-                  className="text-[#ff6a00] hover:underline">
-                  Clear filters
-                </button>
-              </div>
-            )}
+          {/* Product-driven image shortcuts; no outside or invented product photos. */}
+          <section id="morven-collections" className="mt-3 grid grid-cols-4 gap-2 sm:grid-cols-6 lg:grid-cols-8" aria-label="Shop collections">
+            {categoriesWithImages.map(cat => {
+              const prod = catalog.find(p => String(p.category).toUpperCase() === cat && p?.image?.[0]);
+              return <button type="button" key={cat} onClick={() => applyCategory(cat)}
+                className="group flex flex-col items-center overflow-hidden rounded-lg border border-[#e9e3dc] bg-white p-1.5 transition hover:border-[#c69a8d]">
+                <div className="aspect-square w-full overflow-hidden rounded-md bg-[#f5f2ee]">
+                  <ProductPhoto product={prod} className="group-hover:scale-105 transition-transform"/>
+                </div>
+                <span className="truncate px-1 py-2 text-center text-[10px] font-semibold">
+                  {CATEGORY_LABELS[cat] || cat}
+                </span>
+              </button>;
+            })}
+          </section>
 
-            {filtered.length > 0 ? (
+          <section id="morven-feed" className="scroll-mt-40 pt-8" aria-labelledby="featured-title">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h2 id="featured-title" className="text-[19px] font-semibold tracking-tight">
+                  {query ? "Search Results" : category ? CATEGORY_LABELS[category] || category : "Featured Products & More"}
+                </h2>
+                <p className="mt-1 text-[11px] text-[#998c85]">
+                  {filtered.length} {filtered.length === 1 ? "product" : "products"} · All new Morven uploads join this collection
+                </p>
+              </div>
+              {(query || category) && <button type="button" onClick={() => { setCategory(""); setQuery(""); setInput(""); }}
+                className="rounded-full border border-[#d6c7be] px-4 py-2 text-[11px] font-semibold text-[#7a2b3d] hover:border-[#7a2b3d]">
+                View All Products
+              </button>}
+            </div>
+
+            {filtered.length ? (
               <>
-                <div className="grid grid-cols-2 gap-[7px] sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-                  {filtered.slice(0, visible).map((product) => (
-                    <CatalogCard key={product._id} product={product} currency={currency} />
-                  ))}
+                <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+                  {displayed.map(product => <ProductCard key={product._id} product={product} currency={currency}/>)}
                 </div>
                 {visible < filtered.length && (
-                  <div className="mt-5 text-center">
-                    <button type="button" onClick={() => setVisible((n) => n + 120)}
-                      className="rounded-full border border-[#ddd] bg-white px-9 py-3 text-[12px] font-semibold hover:border-[#ff6a00] hover:text-[#ff6a00]">
-                      Show more products
-                    </button>
+                  <div ref={sentinel} className="flex justify-center py-10">
+                    <span className="rounded-full border border-[#e5d9d1] bg-white px-6 py-2 text-[11px] text-[#8c7873]">
+                      Loading more Morven products…
+                    </span>
                   </div>
                 )}
               </>
-            ) : productsLoading ? (
-              <div className="grid grid-cols-2 gap-[7px] sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-                {Array.from({ length: 12 }).map((_, index) => (
-                  <div key={index} className="animate-pulse rounded-[4px] bg-[#ededed] p-[5px]">
-                    <div className="aspect-square bg-[#e2e2e2]" />
-                    <div className="my-2 h-3 rounded bg-[#e2e2e2]" />
-                    <div className="h-3 w-2/3 rounded bg-[#e2e2e2]" />
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="rounded-[5px] bg-white px-6 py-16 text-center text-[13px] text-[#777]">
-                No Morven products match your search or category.
-                <button type="button" onClick={() => { setSearch(""); setCategory(""); setInput(""); }}
-                  className="ml-2 font-semibold text-[#ff6a00] hover:underline">
-                  View all products
-                </button>
-              </div>
-            )}
+            ) : <div className="rounded-xl bg-white p-10 text-center text-[13px] text-[#958b85]">
+              {productsLoading ? "Loading Morven products…" : "No items found. Try another category or search term."}
+            </div>}
           </section>
 
-          <div className="mt-10 flex flex-wrap items-center gap-3 border-t border-[#ebebeb] pt-4 text-[10px] text-[#777]">
-            <span className="font-semibold text-[#555]">Related searches:</span>
-            {["Men's suits", "Formal shirts", "Business trousers", "Wedding suits", "Leather shoes", "Accessories"].map((term) => (
-              <button type="button" key={term}
-                onClick={() => { setSearch(term.split(" ").slice(-1)[0]); setInput(term.split(" ").slice(-1)[0]); setCategory(""); }}
-                className="rounded-full border border-[#e5e5e5] bg-white px-3 py-[5px] hover:border-[#ff6a00]">
-                {term}
-              </button>
-            ))}
+          <div className="mt-12 grid gap-3 border-t border-[#ece3dd] pt-5 sm:grid-cols-2">
+            <Link href="/all-products?category=SUIT" className="flex min-h-28 items-center justify-between overflow-hidden rounded-lg bg-[#f2e6df] px-6 py-4">
+              <div><p className="font-serif text-[23px] font-semibold text-[#522c35]">The Suit Edit</p>
+                <p className="mt-2 text-[11px] text-[#8b6c65]">Explore formal menswear by Morven</p></div>
+              {byCategory("SUIT") && <div className="h-28 w-28"><ProductPhoto product={byCategory("SUIT")}/></div>}
+            </Link>
+            <Link href="/all-products?category=SHIRT" className="flex min-h-28 items-center justify-between overflow-hidden rounded-lg bg-[#ece8e4] px-6 py-4">
+              <div><p className="font-serif text-[23px] font-semibold text-[#522c35]">Shirts & Essentials</p>
+                <p className="mt-2 text-[11px] text-[#8b6c65]">Elevate the everyday</p></div>
+              {byCategory("SHIRT") && <div className="h-28 w-28"><ProductPhoto product={byCategory("SHIRT")}/></div>}
+            </Link>
           </div>
         </div>
       </div>
-      <Footer />
+      <Footer/>
     </>
   );
 }
