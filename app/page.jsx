@@ -9,7 +9,6 @@ import { useAppContext } from "@/context/AppContext";
 // The two existing Morven navbars are rendered in app/layout.js.
 // This page recreates the compact marketplace layout UNDER those navbars.
 
-const ORANGE = "#ff6a00";
 const DISPLAY_CATEGORIES = [
   "SUIT", "SHIRT", "TROUSERS", "JACKET", "T-SHIRT",
   "SHOE", "ACCESSORY", "KNITWEAR", "TUXEDO", "OUTERWEAR",
