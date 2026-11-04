@@ -21,6 +21,9 @@ const PaymentSchema = new mongoose.Schema({
                 ref: 'Product'
             },
 
+            size: { type: String, default: '' },
+            name: String,
+            unitPrice: Number,
             quantity: {
                 type: Number,
                 required: true

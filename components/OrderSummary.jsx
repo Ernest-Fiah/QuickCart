@@ -1,5 +1,6 @@
 
 import { useAppContext } from "@/context/AppContext";
+import { parseCartKey, totals } from "@/lib/commerce.mjs";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
@@ -67,12 +68,14 @@ const OrderSummary = () => {
   const createOrder = async () => {
     try {
 
+      if (paymentLoading) return;
+      if (!user) return toast.error("Please sign in before checkout");
       if (!selectedAddress) {
         return toast.error("Please select an address");
       }
 
       let cartItemsArray = Object.keys(cartItems).map((key) => ({
-        product: key,
+        ...parseCartKey(key),
         quantity: cartItems[key],
       }));
 
@@ -209,32 +212,6 @@ const OrderSummary = () => {
 
         </div>
 
-        {/* Promo Code */}
-        <div>
-
-          <label className="text-base font-medium uppercase text-gray-600 block mb-2">
-            Promo Code
-          </label>
-
-          <div className="flex flex-col items-start gap-3">
-
-            <input
-              type="text"
-              placeholder="Enter promo code"
-              className="flex-grow w-full outline-none p-2.5 text-gray-600 border"
-            />
-
-            <button
-              type="button"
-              className="bg-orange-600 text-white px-9 py-2 hover:bg-orange-700"
-            >
-              Apply
-            </button>
-
-          </div>
-
-        </div>
-
         <hr className="border-gray-500/30 my-5" />
 
         {/* Order Amount */}
@@ -247,7 +224,7 @@ const OrderSummary = () => {
             </p>
 
             <p className="text-gray-800">
-              {currency}{getCartAmount()}
+              {currency}{getCartAmount().toFixed(2)}
             </p>
 
           </div>
@@ -271,7 +248,7 @@ const OrderSummary = () => {
             </p>
 
             <p className="font-medium text-gray-800">
-              {currency}{Math.floor(getCartAmount() * 0.02)}
+              {currency}{totals(getCartAmount()).tax.toFixed(2)}
             </p>
 
           </div>
@@ -282,7 +259,7 @@ const OrderSummary = () => {
 
             <p>
               {currency}
-              {getCartAmount() + Math.floor(getCartAmount() * 0.02)}
+              {totals(getCartAmount()).amount.toFixed(2)}
             </p>
 
           </div>
@@ -294,7 +271,7 @@ const OrderSummary = () => {
       {/* Pay with Paystack */}
       <button
         onClick={createOrder}
-        disabled={paymentLoading}
+        disabled={paymentLoading || !user || !getCartCount()}
         className="w-full bg-orange-600 text-white py-3 mt-5 hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {paymentLoading ? "Processing Payment..." : "Pay with Paystack"}

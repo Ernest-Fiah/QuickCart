@@ -5,6 +5,7 @@ import { NextResponse } from 'next/server';
 import authSeller from '@/lib/authSeller';
 import connectDB from '@/config/db';
 import Product from '@/models/Product';
+import { parseSizes, requiresSize } from '@/lib/commerce.mjs';
 
 // Configure Cloudinary
 cloudinary.config({
@@ -74,6 +75,10 @@ export async function POST(request) {
         const price = formData.get('price');
         const offerPrice = formData.get('offerPrice');
 
+        let sizes;
+        try { sizes = parseSizes(JSON.parse(formData.get('sizes') || '[]')); }
+        catch { return NextResponse.json({ success: false, message: 'Invalid size list' }, { status: 400 }); }
+        if (!name?.trim() || !description?.trim() || !category || !Number.isFinite(Number(price)) || Number(price) <= 0 || !Number.isFinite(Number(offerPrice)) || Number(offerPrice) <= 0 || Number(offerPrice) > Number(price) || (requiresSize({ category }) && !sizes.length)) return NextResponse.json({ success: false, message: 'Enter valid product details, prices and available sizes' }, { status: 400 });
         // Get image files
         const files = formData.getAll('images');
 
@@ -90,6 +95,7 @@ export async function POST(request) {
             );
         }
 
+        if (files.length > 4 || files.some(file => !['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size > 10 * 1024 * 1024)) return NextResponse.json({ success: false, message: 'Use up to four JPG, PNG or WebP images, each under 10 MB' }, { status: 400 });
         // Upload images to Cloudinary
         const result = await Promise.all(
             files.map(async (file) => {
@@ -147,6 +153,7 @@ export async function POST(request) {
             name,
             description,
             category,
+            sizes,
             price: Number(price),
             offerPrice: Number(offerPrice),
             image,
@@ -190,4 +197,3 @@ export async function POST(request) {
         );
     }
 }
-

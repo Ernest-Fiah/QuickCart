@@ -1,12 +1,12 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState, useRef } from "react";
 import { useUser, useAuth } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import toast from "react-hot-toast";
 
-import { productsDummyData } from "@/assets/assets";
+import { cartKey, parseCartKey, validateItem, cleanCart } from "@/lib/commerce.mjs";
 
 export const AppContext = createContext();
 
@@ -65,7 +65,7 @@ export const AppContextProvider = ({ children }) => {
 
       if (data.success) {
         setUserData(data.user);
-        setCartItems(data.user.cartItems || {});
+        setCartItems(cleanCart(data.user.cartItems));
 
         if (user?.publicMetadata?.role === "seller") {
           setIsSeller(true);
@@ -86,86 +86,39 @@ export const AppContextProvider = ({ children }) => {
     }
   };
 
-  const addToCart = async (itemId) => {
-    try {
-      const cartData = structuredClone(cartItems);
-
-      if (cartData[itemId]) {
-        cartData[itemId] += 1;
-      } else {
-        cartData[itemId] = 1;
-      }
-
-      setCartItems(cartData);
-
-      const token = await getToken();
-
-      const { data } = await axios.post(
-        "/api/cart/update",
-        {
-          cartItems: cartData,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (data.success) {
-        toast.success("Product added to cart");
-      } else {
-        toast.error(data.message);
-      }
-    } catch (error) {
-      console.error("Add to cart error:", error);
-
-      toast.error(
-        error.response?.data?.message ||
-          error.message ||
-          "Failed to add product to cart"
-      );
-    }
+  const cartLock = useRef(false);
+  const [cartBusy, setCartBusy] = useState(false);
+  const saveCart = async (cartData) => {
+    const token = await getToken();
+    const { data } = await axios.post('/api/cart/update', { cartItems: cartData }, { headers: { Authorization: `Bearer ${token}` } });
+    if (!data.success) throw new Error(data.message);
+    setCartItems(cartData);
   };
-
-  const updateCartQuantity = async (itemId, quantity) => {
+  const addToCart = async (itemId, size = '') => {
+    if (!isSignedIn) { toast.error('Please sign in to add items'); return false; }
+    if (cartLock.current) return false;
+    cartLock.current = true;
+    setCartBusy(true);
     try {
-      const cartData = structuredClone(cartItems);
-
-      if (quantity === 0) {
-        delete cartData[itemId];
-      } else {
-        cartData[itemId] = quantity;
-      }
-
-      setCartItems(cartData);
-
-      const token = await getToken();
-
-      const { data } = await axios.post(
-        "/api/cart/update",
-        {
-          cartItems: cartData,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (!data.success) {
-        toast.error(data.message);
-      }
-    } catch (error) {
-      console.error("Update cart quantity error:", error);
-
-      toast.error(
-        error.response?.data?.message ||
-          error.message ||
-          "Failed to update cart"
-      );
-    }
+      const product = products.find(p => p._id === itemId);
+      const key = cartKey(itemId, size);
+      validateItem({ quantity: (cartItems[key] || 0) + 1, size }, product);
+      await saveCart({ ...cartItems, [key]: (cartItems[key] || 0) + 1 });
+      toast.success('Product added to cart');
+      return true;
+    } catch (error) { toast.error(error.response?.data?.message || error.message); return false; }
+    finally { cartLock.current = false; setCartBusy(false); }
+  };
+  const updateCartQuantity = async (key, quantity) => {
+    if (cartLock.current || !Number.isSafeInteger(quantity) || quantity < 0 || quantity > 99) return;
+    cartLock.current = true;
+    setCartBusy(true);
+    try {
+      const next = { ...cartItems };
+      if (quantity === 0) delete next[key]; else next[key] = quantity;
+      await saveCart(next);
+    } catch (error) { toast.error(error.response?.data?.message || 'Unable to update cart'); }
+    finally { cartLock.current = false; setCartBusy(false); }
   };
 
   const getCartCount = () => {
@@ -185,15 +138,15 @@ export const AppContextProvider = ({ children }) => {
 
     for (const itemId in cartItems) {
       const itemInfo = products.find(
-        (product) => product._id === itemId
+        (product) => product._id === parseCartKey(itemId).product
       );
 
       if (itemInfo && cartItems[itemId] > 0) {
-        totalAmount += itemInfo.offerPrice * cartItems[itemId];
+        totalAmount += Math.round(itemInfo.offerPrice * 100) * cartItems[itemId] / 100;
       }
     }
 
-    return Math.floor(totalAmount * 100) / 100;
+    return Math.round(totalAmount * 100) / 100;
   };
 
   useEffect(() => {
@@ -228,6 +181,7 @@ export const AppContextProvider = ({ children }) => {
     fetchProductData,
 
     cartItems,
+    cartBusy,
     setCartItems,
     addToCart,
     updateCartQuantity,

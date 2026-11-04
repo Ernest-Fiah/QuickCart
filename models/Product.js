@@ -38,6 +38,8 @@ const ProductSchema = new mongoose.Schema({
         required: true
     },
 
+    sizes: { type: [String], default: [] },
+
     date: {
         type: Number,
         required: true
@@ -47,4 +49,3 @@ const ProductSchema = new mongoose.Schema({
 const Product = mongoose.models.Product || mongoose.model('Product', ProductSchema);
 
 export default Product;
-

@@ -40,6 +40,17 @@ const ProductList = () => {
     }
   }
 
+  const editSizes = async (product) => {
+    const value = window.prompt('Available sizes, separated by commas. Include units for neck sizes. Leave empty to pause size-based sales.', (product.sizes || []).join(', '));
+    if (value === null) return;
+    try {
+      const token = await getToken();
+      const response = await fetch('/api/product/sizes', { method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ productId: product._id, sizes: value.split(',').map(s => s.trim()).filter(Boolean) }) });
+      const data = await response.json();
+      if (!data.success) throw new Error(data.message);
+      await fetchSellerProduct();
+    } catch (error) { alert(error.message || 'Unable to save sizes'); }
+  };
   const deleteProduct = async (productId) => {
 
     const confirmDelete = window.confirm(
@@ -153,6 +164,7 @@ const ProductList = () => {
 
                     <span className="truncate w-full text-black">
                       {product.name}
+                      <button onClick={() => editSizes(product)} className="block text-xs underline mt-2">Edit sizes: {(product.sizes || []).join(", ") || "Not set"}</button>
                     </span>
 
                   </td>

@@ -38,19 +38,10 @@ const Contact = () => {
         setLoading(true);
 
         try {
-            // This currently handles the form on the frontend.
-            // Connect this to your contact API when you are ready.
-            await new Promise((resolve) => setTimeout(resolve, 800));
-
-            toast.success("Message sent successfully.");
-
-            setFormData({
-                name: "",
-                email: "",
-                phone: "",
-                subject: "",
-                message: ""
-            });
+            const subject = encodeURIComponent(formData.subject || 'Morven enquiry');
+            const body = encodeURIComponent(`${formData.message}\n\nName: ${formData.name}\nEmail: ${formData.email}\nPhone: ${formData.phone}`);
+            window.location.href = `mailto:grosvenor.ghana@gmail.com?subject=${subject}&body=${body}`;
+            toast('Your email app will open. Send the message there to complete your enquiry.');
 
         } catch (error) {
             toast.error("Something went wrong. Please try again.");
@@ -159,10 +150,10 @@ const Contact = () => {
                                     </p>
 
                                     <a
-                                        href="mailto:info@morven.com"
+                                        href="mailto:grosvenor.ghana@gmail.com"
                                         className="mt-3 inline-block text-sm text-[#3F3D39] hover:text-[#77736B] transition"
                                     >
-                                        info@morven.com
+                                        grosvenor.ghana@gmail.com
                                     </a>
 
                                 </div>
@@ -175,10 +166,10 @@ const Contact = () => {
                                     </p>
 
                                     <a
-                                        href="tel:+233000000000"
+                                        href="tel:+233558788167"
                                         className="mt-3 inline-block text-sm text-[#3F3D39] hover:text-[#77736B] transition"
                                     >
-                                        +233 00 000 0000
+                                        055 878 8167
                                     </a>
 
                                 </div>
@@ -397,7 +388,7 @@ const Contact = () => {
                                             disabled:opacity-60
                                         "
                                     >
-                                        {loading ? "Sending..." : "Send Message"}
+                                        {loading ? "Sending..." : "Open email draft"}
                                     </button>
 
                                 </div>
