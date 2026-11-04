@@ -4,6 +4,7 @@
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import ProductCard from "@/components/ProductCard";
+import MorvenShowcase from "@/components/MorvenShowcase";
 import Footer from "@/components/Footer";
 import { useAppContext } from "@/context/AppContext";
 
@@ -526,6 +527,7 @@ const AllProductsContent = () => {
                         </div>
                     </div>
                 )}
+                <MorvenShowcase category={category} query={search === "true" ? "" : search} />
             </div>
 
             <Footer />
