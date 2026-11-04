@@ -12,7 +12,7 @@ This upgrade removes the separate, non-purchasable photo-preview feed and provid
 - Existing customer phone number, location, two navbars and existing Paystack integration are not changed.
 
 ## IMPORTANT: exact prices and sizes are not in the supplied photos
-The seller tool offers editable **starting prices based on older products of the same category**. It does not guarantee that those prices are correct for these 20 garments, and categories without any earlier examples remain blank. Before publishing, check and approve all 20 selling prices and currently available sizes. Do not offer a size your business cannot supply. Product names/descriptions are visually descriptive drafts and should be confirmed.
+**All 20 indicative prices have now been assigned at the user's request** (4 November 2026): suits GH₵3,950–7,000; white dress shirt GH₵760; polos and knitwear GH₵384, GH₵400, GH₵480 or GH₵800. All product regular and selling prices are equal so no unverified discount is shown. The seller can click **Apply November Prices** to reset all 20 items to these values, then adjust any prices. Before publishing, confirm size availability and check the prices. The prices in the code do not automatically edit the live MongoDB products. Do not offer a size your business cannot supply. Product names/descriptions are visually descriptive drafts and should be confirmed.
 
 ## How to import on Windows (local/staging)
 
@@ -20,7 +20,7 @@ The seller tool offers editable **starting prices based on older products of the
 2. Pull the GitHub draft branch into VS Code, stop and restart `npm run dev`.
 3. Sign in using the Clerk account with `publicMetadata.role = "seller"`.
 4. In Seller Dashboard select **New Collection**, or visit `http://localhost:3000/seller/import-collection`.
-5. Review each item; enter/confirm regular price, selling price, name, description, and **sizes actually in stock**. For multiple garments in the same category, use **Copy to all** only when their sizes match.
+5. All 20 assigned prices are prefilled. Review/adjust regular price, selling price, name, description, and **sizes actually in stock**. Click **Apply November Prices** if any previously saved prices should be replaced by the new amounts. For multiple garments in the same category, use **Copy to all** only when their sizes match.
 6. Click **Publish 20 & Archive Old Products** and confirm. The process uploads images in small batches to Cloudinary, then changes the active catalog in a single MongoDB transaction.
 7. Verify `/`, `/all-products`, each `/product/<id>`, and size-aware cart and Paystack **test** checkout.
 
