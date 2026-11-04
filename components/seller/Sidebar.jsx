@@ -17,6 +17,10 @@ const SideBar = () => {
             icon: assets.add_icon,
         },
         {
+            name: 'New Collection',
+            path: '/seller/import-collection',
+        },
+        {
             name: 'Product List',
             path: '/seller/product-list',
             icon: assets.product_list_icon,
@@ -49,7 +53,7 @@ const SideBar = () => {
                                 }`
                             }
                         >
-                            {item.name === 'Newsletter' ? (
+                            {(item.name === 'Newsletter' || item.name === 'New Collection') ? (
                                 <svg
                                     xmlns="http://www.w3.org/2000/svg"
                                     width="28"
