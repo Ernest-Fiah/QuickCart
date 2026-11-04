@@ -47,10 +47,11 @@ const TileImage = ({ product, alt }) => (
     <Image
       unoptimized
       src={product.image[0]}
-      width={280} height={300}
+      width={360}
+      height={450}
       loading="lazy"
       alt={alt || product.name || "Morven product"}
-      className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-[1.035]"
+      className="h-full w-full object-contain object-center transition-transform duration-300 group-hover:scale-[1.045]"
     />
   ) : (
     <div className="flex h-full w-full items-center justify-center text-[10px] text-[#999]">Morven</div>
@@ -110,20 +111,30 @@ function MarketplaceProduct({ product, currency }) {
 
 function DiscoveryTile({ title, sub, product, accent, onClick }) {
   return (
-    <button type="button" onClick={onClick}
-      className={"group relative flex h-[142px] min-w-0 flex-col overflow-hidden rounded-[5px] border p-2.5 text-left " +
+    <button
+      type="button"
+      onClick={onClick}
+      className={
+        "group relative flex h-[185px] min-w-0 flex-col overflow-hidden rounded-[9px] border px-2.5 pb-2.5 pt-3 text-left transition-all duration-200 hover:-translate-y-[1px] hover:shadow-[0_5px_16px_rgba(38,31,24,0.07)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#ff790f] sm:h-[176px] sm:px-3 " +
         (accent
-          ? "border-[#ffb471] bg-gradient-to-br from-[#fff0e4] via-[#ffc58e] to-[#ff790c]"
-          : "border-[#ececec] bg-[#fafafa] hover:border-[#f6b188]")}>
-      <span className={"relative z-10 line-clamp-1 text-[11px] font-bold leading-4 " + (accent ? "text-[#ed5b00]" : "text-[#252525]")}>
+          ? "border-[#ffc18b] bg-gradient-to-br from-[#fff1e5] via-[#ffd0a4] to-[#ffa65a]"
+          : "border-[#ebebeb] bg-white hover:border-[#efb78b]")
+      }
+    >
+      <span className={"relative z-10 line-clamp-1 text-[11px] font-semibold leading-4 sm:text-[12px] " + (accent ? "text-[#e85f08]" : "text-[#252525]")}>
         {title}
       </span>
-      <span className="relative z-10 mt-0.5 line-clamp-1 text-[9px] text-[#888]">{sub}</span>
-      <div className="relative mt-1.5 h-[80px] min-h-0 w-full">
-        <TileImage product={product} alt={title}/>
+      <span className={"relative z-10 mt-0.5 line-clamp-1 text-[9px] sm:text-[10px] " + (accent ? "text-[#995e37]" : "text-[#858585]")}>
+        {sub}
+      </span>
+      <div className={"relative mt-2 flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-[6px] " +
+        (accent ? "bg-white/30" : "bg-[#f7f7f6]")}>
+        <div className="h-full w-full max-w-[165px] p-[3px] sm:max-w-[185px]">
+          <TileImage product={product} alt={title}/>
+        </div>
       </div>
       {accent && (
-        <span className="absolute bottom-2 right-2 z-10 rounded-full bg-[#ff6700] px-3 py-1 text-[9px] font-semibold text-white">
+        <span className="absolute bottom-3 right-3 z-10 rounded-full bg-[#ff6a00] px-3 py-1 text-[9px] font-semibold text-white shadow-sm transition group-hover:bg-[#ec6200]">
           View more
         </span>
       )}
@@ -232,79 +243,118 @@ export default function Home() {
       <div className="min-h-screen bg-[#f9f9f9] text-[#272727]">
         {/* app/layout.js supplies the original Morven Navbar and FashionNavbar. */}
         <div className="mx-auto max-w-[1460px] px-[10px] pb-16 pt-2 sm:px-4 lg:px-6">
-          {/* Alibaba's small centered tabs and narrow orange-framed search card. */}
-          <div className="flex items-center justify-center gap-4 text-[12px] font-semibold sm:gap-8">
+          {/* Compact marketplace tabs on desktop; mobile keeps the existing shop navigation. */}
+          <div className="hidden items-center justify-center gap-4 whitespace-nowrap text-[12px] font-semibold sm:flex sm:gap-7">
             {["Discover", "Products", "Collections", "New Arrivals"].map((item, index) => (
-              <div key={item} className="flex items-center gap-4 sm:gap-8">
-                {index > 0 && <span className="text-[#dedede]">|</span>}
-                <button type="button" onClick={() => switchMode(item)}
-                  className={"border-b-[2px] pb-2 pt-1 " + (mode === item
-                    ? "border-[#ff6a00] text-[#ff6a00]"
-                    : "border-transparent text-[#252525] hover:text-[#ff6a00]")}>
+              <div key={item} className="flex items-center gap-4 sm:gap-7">
+                {index > 0 && <span className="text-[#d7d7d7]">|</span>}
+                <button
+                  type="button"
+                  onClick={() => switchMode(item)}
+                  aria-current={mode === item ? "page" : undefined}
+                  className={"border-b-2 px-1 pb-2 pt-1 transition-colors " + (mode === item
+                    ? "border-[#ff6a00] text-[#f4660d]"
+                    : "border-transparent text-[#292929] hover:text-[#f4660d]")}
+                >
                   {item}
                 </button>
               </div>
             ))}
           </div>
-          <form onSubmit={submitSearch} role="search"
-            className="mx-auto mt-[6px] max-w-[775px] rounded-[7px] border-[1.5px] border-[#ff790f] bg-white px-2 py-[6px] shadow-[0_2px_10px_rgba(255,108,0,0.07)]">
-            <div className="flex h-[30px] items-center gap-2">
-              <span className="pl-1 text-[#888]"><SearchIcon/></span>
-              <input type="search" value={searchInput} onChange={e => setSearchInput(e.target.value)}
-                aria-label="Search Morven products" placeholder="What are you looking for?"
-                className="h-full min-w-0 flex-1 border-0 bg-transparent text-[11px] outline-none placeholder:text-[#999]" />
-              <button type="submit"
-                className="h-[28px] shrink-0 rounded-full bg-[#ff6a00] px-6 text-[11px] font-semibold text-white hover:bg-[#e95f00]">
+          <form
+            onSubmit={submitSearch}
+            role="search"
+            className="mx-auto mt-1.5 max-w-[810px] rounded-[10px] border border-[#f58938] bg-white px-2.5 py-2 shadow-[0_5px_18px_rgba(151,80,24,0.08)] transition-shadow focus-within:shadow-[0_5px_22px_rgba(241,115,23,0.16)] sm:mt-2 sm:px-3 sm:py-2.5"
+          >
+            <div className="flex h-[36px] items-center gap-2 sm:h-[38px]">
+              <span aria-hidden="true" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#fff3ea] text-[#ea6b15]">
+                <SearchIcon/>
+              </span>
+              <input
+                type="search"
+                value={searchInput}
+                onChange={e => setSearchInput(e.target.value)}
+                aria-label="Search Morven products"
+                placeholder="What are you looking for?"
+                className="h-full min-w-0 flex-1 border-0 bg-transparent text-[11px] text-[#252525] outline-none placeholder:text-[#9c9c9c] sm:text-[12px]"
+              />
+              <button
+                type="submit"
+                className="h-[32px] shrink-0 rounded-full bg-[#ff6a00] px-4 text-[11px] font-semibold text-white shadow-[0_2px_5px_rgba(252,103,0,0.15)] transition-colors hover:bg-[#e95f00] sm:h-[34px] sm:px-7"
+              >
                 Search
               </button>
             </div>
-            <div className="flex flex-wrap gap-x-3 gap-y-1 border-t border-[#f3f3f3] pt-[5px] text-[9px] text-[#777]">
-              <span className="text-[#a0a0a0]">Popular:</span>
+            <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 border-t border-[#f3f0ee] pt-1.5 text-[9px] text-[#777] sm:gap-x-3 sm:text-[10px]">
+              <span className="font-medium text-[#999]">Popular:</span>
               {["SUIT", "SHIRT", "TROUSERS", "SHOE"].map(item => (
-                <button type="button" key={item} onClick={() => selectCategory(item)}
-                  className="hover:text-[#ff6a00]">{item.toLowerCase()}</button>
+                <button
+                  type="button"
+                  key={item}
+                  onClick={() => selectCategory(item)}
+                  className="rounded-full bg-[#faf6f2] px-2 py-0.5 text-[#76675b] transition-colors hover:bg-[#fff0e3] hover:text-[#e96508]"
+                >
+                  {item.toLowerCase()}
+                </button>
               ))}
             </div>
           </form>
 
-          <div className="mt-6 grid grid-cols-1 divide-y border-y border-[#ececec] bg-white py-[5px] sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+          <div className="mt-4 grid grid-cols-1 divide-y divide-[#f1f1f1] overflow-hidden rounded-[9px] border border-[#ececec] bg-white shadow-[0_2px_10px_rgba(0,0,0,0.025)] sm:mt-5 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
             {[
               ["🇬🇭", "Morven Ghana", "Original Morven menswear collections"],
               ["◈", "Secure checkout", "Payments through Paystack"],
-              ["♧", "Menswear collections", "Browse suits, shirts and accessories"],
+              ["✧", "Menswear collections", "Browse suits, shirts and accessories"],
             ].map(([symbol, label, sub]) => (
-              <div key={label} className="flex min-w-0 items-center gap-2 px-3 py-[5px] sm:px-4">
-                <span className="w-7 shrink-0 text-center text-[18px] text-[#ff6a00]">{symbol}</span>
+              <div key={label} className="flex min-w-0 items-center gap-2.5 px-3 py-[7px] sm:px-4 sm:py-[10px]">
+                <span aria-hidden="true" className="flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-full bg-[#fff4e9] text-[16px] text-[#f17620]">
+                  {symbol}
+                </span>
                 <div className="min-w-0">
-                  <h2 className="truncate text-[10px] font-semibold">{label}</h2>
-                  <p className="mt-[2px] truncate text-[9px] text-[#949494]">{sub}</p>
+                  <h2 className="truncate text-[10px] font-semibold text-[#282828] sm:text-[11px]">{label}</h2>
+                  <p className="mt-0.5 truncate text-[9px] text-[#898989] sm:text-[10px]">{sub}</p>
                 </div>
               </div>
             ))}
           </div>
 
-          {/* Small category + three discovery tiles + an orange tile, like Alibaba. */}
-          <section id="morven-marketplace-discover" aria-label="Morven departments"
-            className="mt-[11px] grid grid-cols-2 gap-[7px] sm:grid-cols-5">
-            <div className="col-span-2 h-[142px] overflow-hidden rounded-[5px] border border-[#eaeaea] bg-white p-2 sm:col-span-1">
-              <button type="button" onClick={() => selectCategory("")}
-                className="mb-1 flex w-full items-center justify-between border-b border-[#eee] pb-1.5 text-[11px] font-semibold hover:text-[#ff6a00]">
+          {/* Preserve the five-column desktop marketplace and two-column mobile cards. */}
+          <section
+            id="morven-marketplace-discover"
+            aria-label="Morven departments"
+            className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-5 sm:gap-3"
+          >
+            <div className="col-span-2 h-[185px] overflow-hidden rounded-[9px] border border-[#ebebeb] bg-white px-3 py-2.5 shadow-[0_2px_8px_rgba(0,0,0,0.025)] sm:col-span-1 sm:h-[176px]">
+              <button
+                type="button"
+                onClick={() => selectCategory("")}
+                className="mb-1.5 flex w-full items-center justify-between border-b border-[#eee] pb-2 text-[12px] font-semibold hover:text-[#ee6506]"
+              >
                 <span>All Categories</span><ArrowRight/>
               </button>
-              <div className="max-h-[106px] space-y-[1px] overflow-y-auto">
+              <div className="max-h-[135px] space-y-0.5 overflow-y-auto pr-1 sm:max-h-[126px]">
                 {(categoryOptions.length ? categoryOptions : DEFAULT_CATEGORIES).map(([id, name]) => (
-                  <button type="button" key={id} onClick={() => selectCategory(id)}
-                    className={"flex w-full items-center justify-between gap-1 rounded-sm px-1 py-[2px] text-left text-[9px] leading-[14px] " +
-                      (id === category ? "bg-[#fff0e5] font-semibold text-[#ee6506]" : "text-[#666] hover:bg-[#faf4ef]")}>
+                  <button
+                    type="button"
+                    key={id}
+                    onClick={() => selectCategory(id)}
+                    className={"flex w-full items-center justify-between gap-1 rounded-[4px] px-1.5 py-1 text-left text-[10px] leading-4 transition-colors " +
+                      (id === category ? "bg-[#fff0e5] font-semibold text-[#ee6506]" : "text-[#626262] hover:bg-[#faf4ef]")}
+                  >
                     <span className="truncate">{name}</span><ArrowRight/>
                   </button>
                 ))}
               </div>
             </div>
             {featured.map(tile => (
-              <DiscoveryTile key={tile.title} title={tile.title} sub={tile.sub}
-                product={tile.product} accent={tile.accent}
-                onClick={() => selectCategory(tile.category)}/>
+              <DiscoveryTile
+                key={tile.title}
+                title={tile.title}
+                sub={tile.sub}
+                product={tile.product}
+                accent={tile.accent}
+                onClick={() => selectCategory(tile.category)}
+              />
             ))}
           </section>
 
