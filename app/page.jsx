@@ -4,7 +4,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import Footer from "@/components/Footer";
-import MorvenShowcase from "@/components/MorvenShowcase";
 import { useAppContext } from "@/context/AppContext";
 
 // Alibaba-style compact product marketplace, adapted to Morven's existing catalog.
@@ -350,8 +349,6 @@ export default function Home() {
               </div>
             )}
           </section>
-
-          <MorvenShowcase category={category} query={term} />
 
           <div className="mt-8 flex flex-wrap gap-2 border-t border-[#e7e7e7] pt-4 text-[10px]">
             <span className="mr-1 py-1 text-[#777]">Related searches</span>
