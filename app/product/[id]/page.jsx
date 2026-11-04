@@ -9,6 +9,7 @@ import Footer from "@/components/Footer";
 import Loading from "@/components/Loading";
 import { useAppContext } from "@/context/AppContext";
 import { getAvailableSizes, needsSize } from "@/lib/sizing.mjs";
+import { MORVEN_CONTACT } from "@/lib/morvenContact";
 
 // The existing app/layout.js already renders BOTH Morven navbars.
 // All photos, names, prices and descriptions below come from the current catalog.
@@ -294,7 +295,7 @@ export default function Product() {
                                 <div className="min-w-0">
                                     <h2 className="truncate text-[12px] font-semibold underline decoration-[#b4aca3] underline-offset-2">Morven Ghana</h2>
                                     <p className="mt-1 flex items-center gap-1.5 text-[11px] text-[#877e75]">
-                                        <span aria-label="Ghana flag" role="img">🇬🇭</span> Ghana · Morven menswear
+                                        <span aria-label="Ghana flag" role="img">🇬🇭</span> {MORVEN_CONTACT.location}
                                     </p>
                                 </div>
                             </div>
@@ -309,7 +310,9 @@ export default function Product() {
                                 </div>
                             </div>
                             <div className="flex flex-wrap items-center justify-between gap-3 pt-3 text-[11px]">
-                                <Link href="/contact" className="font-semibold text-[#e86720] hover:underline">Contact Morven →</Link>
+                                <a href={"https://wa.me/" + MORVEN_CONTACT.whatsappNumber} target="_blank" rel="noopener noreferrer"
+                                    className="font-semibold text-[#7c2b3d] hover:underline">WhatsApp Morven →</a>
+                                <a href={"tel:" + MORVEN_CONTACT.phoneE164} className="text-[#766e65] hover:underline">{MORVEN_CONTACT.phoneDisplay}</a>
                                 <Link href="/all-products" className="text-[#766e65] hover:underline">Other products →</Link>
                             </div>
                         </div>
