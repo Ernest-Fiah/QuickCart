@@ -140,6 +140,32 @@ export const AppContextProvider = ({ children }) => {
     }
   };
 
+  const clearCart = async () => {
+    if (!isSignedIn) {
+      toast.error("Please sign in to clear your cart.");
+      return false;
+    }
+    try {
+      const token = await getToken();
+      const { data } = await axios.post(
+        "/api/cart/update",
+        { action: "clear" },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      if (!data.success) {
+        toast.error(data.message || "Unable to clear your cart.");
+        return false;
+      }
+      setCartItems(data.cartItems || {});
+      toast.success("Your cart has been cleared.");
+      return true;
+    } catch (error) {
+      console.error("Clear cart error:", error);
+      toast.error(error.response?.data?.message || "Unable to clear your cart. Please try again.");
+      return false;
+    }
+  };
+
   const getCartCount = () => {
     let totalCount = 0;
 
@@ -206,6 +232,7 @@ export const AppContextProvider = ({ children }) => {
     setCartItems,
     addToCart,
     updateCartQuantity,
+    clearCart,
     getCartCount,
     getCartAmount,
   };
