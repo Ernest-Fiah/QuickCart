@@ -12,9 +12,27 @@ export async function POST(request) {
     const { userId } = await auth();
     if (!userId) return NextResponse.json({ success: false, message: "Please sign in." }, { status: 401 });
     const secret = process.env.PAYSTACK_SECRET_KEY;
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL;
-    if (!secret || !appUrl || !/^https?:\/\//.test(appUrl)) {
-      return NextResponse.json({ success: false, message: "Payments are not yet configured." }, { status: 503 });
+    const isPreview = process.env.VERCEL_ENV === "preview";
+    if (!secret) {
+      return NextResponse.json({
+        success: false,
+        message: isPreview
+          ? "Test payments are not yet enabled on this preview. The store administrator must configure a Paystack test secret key for the Vercel Preview environment."
+          : "Payments are not yet configured.",
+      }, { status: 503 });
+    }
+    // Never send shoppers to a LIVE Paystack charge from a review deployment.
+    if (process.env.VERCEL_ENV !== "production" && secret.startsWith("sk_live_")) {
+      return NextResponse.json({
+        success: false,
+        message: "Live Paystack payments are disabled outside production. Configure a test key for preview.",
+      }, { status: 503 });
+    }
+    const appUrl = isPreview
+      ? new URL(request.url).origin
+      : (process.env.NEXT_PUBLIC_APP_URL || new URL(request.url).origin);
+    if (!/^https?:\/\//.test(appUrl)) {
+      return NextResponse.json({ success: false, message: "Payment return URL is not configured." }, { status: 503 });
     }
     const { address, items } = await request.json();
     await connectDB();
