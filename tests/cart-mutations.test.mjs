@@ -37,4 +37,6 @@ test("available shoe sizes remain 39 through 48", () => {
   const available = getAvailableSizes({ category: "SHOE" });
   assert.equal(available.at(0), "39");
   assert.equal(available.at(-1), "48");
+  assert.deepEqual(getAvailableSizes({ category: "Shoes" }), available);
+  assert.deepEqual(getAvailableSizes({ category: "Footwear" }), available);
 });
