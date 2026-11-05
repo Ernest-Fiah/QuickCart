@@ -1,9 +1,9 @@
 name: Morven prelaunch checks
 on:
   pull_request:
-    branches: [main, morven/product-detail-marketplace-2026-11-04]
+    branches: [main, morven/product-detail-marketplace-2026-11-04, morven/alibaba-inspired-home-detail-reviews-2026-11-04]
   push:
-    branches: [morven/alibaba-inspired-home-detail-reviews-2026-11-04]
+    branches: [morven/alibaba-inspired-home-detail-reviews-2026-11-04, 'security/**']
   workflow_dispatch:
 jobs:
   verify:
