@@ -4,7 +4,7 @@ import connectDB from "@/config/db";
 import User from "@/models/User";
 import Product from "@/models/Product";
 import { getAvailableSizes, needsSize, makeCartKey, parseCartKey } from "@/lib/sizing.mjs";
-import { applyCartMutation } from "@/lib/cartMutations.mjs";
+import { applyCartMutation, clearCartItems } from "@/lib/cartMutations.mjs";
 import mongoose from "mongoose";
 
 const badRequest = (message, status = 400) =>
@@ -17,6 +17,19 @@ export async function POST(request) {
 
     const body = await request.json();
     await connectDB();
+
+    if (body?.action === "clear") {
+      // Clear only the authenticated customer's persisted cart. This action
+      // intentionally bypasses product validation so obsolete items can be
+      // removed even when a product/size no longer exists.
+      const updated = await User.findOneAndUpdate(
+        { _id: userId },
+        { $set: { cartItems: clearCartItems() }, $inc: { __v: 1 } },
+        { new: true }
+      ).lean();
+      if (!updated) return badRequest("Account not found.", 404);
+      return NextResponse.json({ success: true, cartItems: updated.cartItems || {} });
+    }
 
     // Incremental updates only validate the selected item. Before this change,
     // adding a valid size submitted and revalidated the ENTIRE saved cart. Any
