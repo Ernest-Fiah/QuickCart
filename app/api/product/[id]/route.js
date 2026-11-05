@@ -10,7 +10,7 @@ export async function GET(request, { params }) {
 
         const product = await Product.findById(id).lean();
 
-        if (!product) {
+        if (!product || product.isActive === false) {
             return NextResponse.json(
                 {
                     success: false,

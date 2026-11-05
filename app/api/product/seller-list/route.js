@@ -41,7 +41,7 @@ export async function GET(request) {
         await connectDB();
 
         // Get all products belonging to this seller
-        const products = await Product.find({ userId });
+        const products = await Product.find({ userId, isActive: { $ne: false } });
 
         // Send products in response
         return NextResponse.json(

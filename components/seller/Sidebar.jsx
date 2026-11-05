@@ -17,6 +17,11 @@ const SideBar = () => {
             icon: assets.add_icon,
         },
         {
+            name: 'New Collection',
+            path: '/seller/import-collection',
+            icon: assets.add_icon,
+        },
+        {
             name: 'Product List',
             path: '/seller/product-list',
             icon: assets.product_list_icon,

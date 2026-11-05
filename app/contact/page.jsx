@@ -5,6 +5,7 @@ import React, { useState } from "react";
 import { useAppContext } from "@/context/AppContext";
 import Footer from "@/components/Footer";
 import toast from "react-hot-toast";
+import { MORVEN_CONTACT } from "@/lib/morvenContact";
 
 const Contact = () => {
 
@@ -18,7 +19,6 @@ const Contact = () => {
         message: ""
     });
 
-    const [loading, setLoading] = useState(false);
 
     const handleChange = (e) => {
         setFormData({
@@ -27,36 +27,21 @@ const Contact = () => {
         });
     };
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = (e) => {
         e.preventDefault();
-
         if (!formData.name || !formData.email || !formData.message) {
             toast.error("Please fill in all required fields.");
             return;
         }
-
-        setLoading(true);
-
-        try {
-            // This currently handles the form on the frontend.
-            // Connect this to your contact API when you are ready.
-            await new Promise((resolve) => setTimeout(resolve, 800));
-
-            toast.success("Message sent successfully.");
-
-            setFormData({
-                name: "",
-                email: "",
-                phone: "",
-                subject: "",
-                message: ""
-            });
-
-        } catch (error) {
-            toast.error("Something went wrong. Please try again.");
-        } finally {
-            setLoading(false);
-        }
+        const subject = encodeURIComponent(formData.subject?.trim() || "Morven Ghana customer enquiry");
+        const message = encodeURIComponent(
+            "Name: " + formData.name + "\nEmail: " + formData.email +
+            "\nPhone: " + (formData.phone || "Not provided") +
+            "\n\n" + formData.message
+        );
+        // Open the visitor's email app; do not pretend a message was delivered.
+        window.location.href = "mailto:" + MORVEN_CONTACT.email + "?subject=" + subject + "&body=" + message;
+        toast("Your email app will open so you can review and send the message.");
     };
 
     return (
@@ -146,7 +131,7 @@ const Contact = () => {
                                     </p>
 
                                     <p className="mt-3 text-sm leading-7 text-[#3F3D39]">
-                                        Accra, Ghana
+                                        {MORVEN_CONTACT.location}
                                     </p>
 
                                 </div>
@@ -159,10 +144,10 @@ const Contact = () => {
                                     </p>
 
                                     <a
-                                        href="mailto:info@morven.com"
+                                        href={"mailto:" + MORVEN_CONTACT.email}
                                         className="mt-3 inline-block text-sm text-[#3F3D39] hover:text-[#77736B] transition"
                                     >
-                                        info@morven.com
+                                        {MORVEN_CONTACT.email}
                                     </a>
 
                                 </div>
@@ -175,10 +160,10 @@ const Contact = () => {
                                     </p>
 
                                     <a
-                                        href="tel:+233000000000"
+                                        href={"tel:" + MORVEN_CONTACT.phoneE164}
                                         className="mt-3 inline-block text-sm text-[#3F3D39] hover:text-[#77736B] transition"
                                     >
-                                        +233 00 000 0000
+                                        {MORVEN_CONTACT.phoneDisplay}
                                     </a>
 
                                 </div>
@@ -191,9 +176,7 @@ const Contact = () => {
                                     </p>
 
                                     <p className="mt-3 text-sm leading-7 text-[#3F3D39]">
-                                        Monday – Saturday
-                                        <br />
-                                        9:00 AM – 6:00 PM
+                                        Contact us for current store hours and directions.
                                     </p>
 
                                 </div>
@@ -381,7 +364,6 @@ const Contact = () => {
 
                                     <button
                                         type="submit"
-                                        disabled={loading}
                                         className="
                                             w-full md:w-auto
                                             bg-[#3F3D39]
@@ -397,7 +379,7 @@ const Contact = () => {
                                             disabled:opacity-60
                                         "
                                     >
-                                        {loading ? "Sending..." : "Send Message"}
+                                        Open Email to Send
                                     </button>
 
                                 </div>

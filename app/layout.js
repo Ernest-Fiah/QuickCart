@@ -31,8 +31,8 @@ export default function RootLayout({ children }) {
             <Navbar />
             <FashionNavbar />
 
-            {/* Space reserved for the two fixed navbars */}
-            <main className="pt-14 lg:pt-[9rem]">
+            {/* Mobile: 56px primary nav + 52px category nav; desktop: 88px + 56px */}
+            <main className="pt-[6.75rem] lg:pt-[9rem]">
               {children}
             </main>
           </AppContextProvider>
