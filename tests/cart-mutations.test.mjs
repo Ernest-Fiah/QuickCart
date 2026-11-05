@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { applyCartMutation } from "../lib/cartMutations.mjs";
+import { applyCartMutation, clearCartItems } from "../lib/cartMutations.mjs";
 import { getAvailableSizes, makeCartKey } from "../lib/sizing.mjs";
 
 const productId = "507f1f77bcf86cd799439011";
@@ -39,4 +39,20 @@ test("available shoe sizes remain 39 through 48", () => {
   assert.equal(available.at(-1), "48");
   assert.deepEqual(getAvailableSizes({ category: "Shoes" }), available);
   assert.deepEqual(getAvailableSizes({ category: "Footwear" }), available);
+});
+
+test("clear cart removes every size and old saved item without affecting previous data", () => {
+  const oldCart = {
+    [productId]: 1,
+    [makeCartKey(productId, "M")]: 2,
+    [makeCartKey(productId, "L")]: 3,
+  };
+  const cleared = clearCartItems(oldCart);
+  assert.deepEqual(cleared, {});
+  assert.equal(Object.keys(oldCart).length, 3);
+});
+
+test("clear cart is safe when the cart is already empty or malformed", () => {
+  assert.deepEqual(clearCartItems({}), {});
+  assert.deepEqual(clearCartItems(null), {});
 });
