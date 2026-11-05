@@ -8,6 +8,7 @@ import { useState } from "react";
 
 import { assets } from "@/assets/assets";
 import { useAppContext } from "@/context/AppContext";
+import { MORVEN_CONTACT } from "@/lib/morvenContact";
 
 const CartIcon = () => (
   <svg
@@ -529,11 +530,11 @@ const Navbar = () => {
             }`}
           >
             <a
-              href="https://www.instagram.com/"
+              href={MORVEN_CONTACT.instagramUrl}
               target="_blank"
               rel="noreferrer"
               className="text-white transition-transform duration-300 hover:-translate-y-1"
-              aria-label="Instagram"
+              aria-label={"Instagram " + MORVEN_CONTACT.instagramHandle}
             >
               <InstagramIcon />
             </a>
