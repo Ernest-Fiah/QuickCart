@@ -165,6 +165,20 @@ const Contact = () => {
                                     >
                                         {MORVEN_CONTACT.phoneDisplay}
                                     </a>
+                                    <a
+                                        href={"tel:" + MORVEN_CONTACT.secondaryPhoneE164}
+                                        className="mt-2 block w-fit text-sm text-[#3F3D39] hover:text-[#77736B] transition"
+                                    >
+                                        {MORVEN_CONTACT.secondaryPhoneDisplay}
+                                    </a>
+                                    <a
+                                        href={"https://wa.me/" + MORVEN_CONTACT.whatsappNumber}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="mt-3 block w-fit text-sm font-medium text-[#7c273d] hover:underline"
+                                    >
+                                        Message us on WhatsApp
+                                    </a>
 
                                 </div>
 

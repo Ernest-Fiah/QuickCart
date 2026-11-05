@@ -54,6 +54,9 @@ export default function Footer() {
             <a href={"tel:" + MORVEN_CONTACT.phoneE164} className="hover:text-[#7c2b3d]">
               {MORVEN_CONTACT.phoneDisplay}
             </a>
+            <a href={"tel:" + MORVEN_CONTACT.secondaryPhoneE164} className="hover:text-[#7c2b3d]">
+              {MORVEN_CONTACT.secondaryPhoneDisplay}
+            </a>
             <a href={"mailto:" + MORVEN_CONTACT.email}
               className="break-all hover:text-[#7c2b3d]">{MORVEN_CONTACT.email}</a>
           </address>
