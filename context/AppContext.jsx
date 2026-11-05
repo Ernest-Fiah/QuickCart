@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import axios from "axios";
 import toast from "react-hot-toast";
 
-import { parseCartKey, makeCartKey, needsSize, getAvailableSizes } from "@/lib/sizing.mjs";
+import { parseCartKey } from "@/lib/sizing.mjs";
 
 export const AppContext = createContext();
 
@@ -87,95 +87,56 @@ export const AppContextProvider = ({ children }) => {
   };
 
   const addToCart = async (itemId, size = "") => {
+    if (!isSignedIn) {
+      toast.error("Please sign in to add a product to your cart.");
+      return false;
+    }
     try {
-      const product = products.find((item) => item._id === itemId);
-      if (product && needsSize(product) && !getAvailableSizes(product).includes(size)) {
-        toast.error("Select your size on the product page first.");
-        router.push("/product/" + itemId);
-        return false;
-      }
-      const key = makeCartKey(itemId, size);
-      const cartData = structuredClone(cartItems);
-      cartData[key] = (cartData[key] || 0) + 1;
-      if (cartData[key] > 25) {
-        toast.error("Maximum 25 units per size.");
-        return false;
-      }
-
+      // The server fetches the current product and account cart, rather than
+      // trusting potentially stale product lists or old saved cart entries.
       const token = await getToken();
-
       const { data } = await axios.post(
         "/api/cart/update",
-        {
-          cartItems: cartData,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        { action: "add", productId: itemId, size },
+        { headers: { Authorization: `Bearer ${token}` } }
       );
-
-      if (data.success) {
-        setCartItems(cartData);
-        toast.success("Product added to cart");
-        return true;
-      } else {
-        toast.error(data.message);
+      if (!data.success) {
+        toast.error(data.message || "Unable to add this size to your cart.");
         return false;
       }
+      setCartItems(data.cartItems || {});
+      toast.success("Product added to cart");
+      return true;
     } catch (error) {
       console.error("Add to cart error:", error);
-
-      toast.error(
-        error.response?.data?.message || error.message || "Failed to add product to cart"
-      );
+      toast.error(error.response?.data?.message || error.message || "Failed to add product to cart");
       return false;
     }
   };
 
   const updateCartQuantity = async (itemId, quantity) => {
+    if (!Number.isSafeInteger(quantity) || quantity < 0 || quantity > 25) {
+      toast.error("Choose a quantity between 0 and 25.");
+      return false;
+    }
     try {
-      const cartData = structuredClone(cartItems);
-
-      if (quantity === 0) {
-        delete cartData[itemId];
-      } else {
-        cartData[itemId] = quantity;
-      }
-
-      if (!Number.isSafeInteger(quantity) || quantity < 0 || quantity > 25) {
-        toast.error("Choose a quantity between 0 and 25.");
-        return;
-      }
-
+      const { productId, size } = parseCartKey(itemId);
       const token = await getToken();
-
       const { data } = await axios.post(
         "/api/cart/update",
-        {
-          cartItems: cartData,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        { action: "set", productId, size, quantity },
+        { headers: { Authorization: `Bearer ${token}` } }
       );
-
       if (!data.success) {
-        toast.error(data.message);
-      } else {
-        setCartItems(cartData);
+        toast.error(data.message || "Unable to update the cart.");
+        return false;
       }
+      setCartItems(data.cartItems || {});
+      return true;
     } catch (error) {
       console.error("Update cart quantity error:", error);
-
-      toast.error(
-        error.response?.data?.message ||
-          error.message ||
-          "Failed to update cart"
-      );
+      toast.error(error.response?.data?.message || error.message || "Failed to update cart");
+      return false;
     }
   };
 
@@ -212,6 +173,10 @@ export const AppContextProvider = ({ children }) => {
 
   useEffect(() => {
     if (user && isSignedIn) {
+      // Never display a previous signed-in user's cart during account changes.
+      setUserData(false);
+      setCartItems({});
+      setIsSeller(false);
       fetchUserData();
     } else {
       setUserData(false);
