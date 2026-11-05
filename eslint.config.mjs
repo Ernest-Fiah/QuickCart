@@ -9,6 +9,13 @@ const compat = new FlatCompat({
   baseDirectory: __dirname,
 });
 
-const eslintConfig = [...compat.extends("next/core-web-vitals")];
+// Generated output is not application source. ESLint 9 flat config needs
+// an explicit global ignore (Git's .gitignore does not apply here).
+const eslintConfig = [
+  {
+    ignores: ["**/.next/**", "**/out/**", "**/build/**", "**/coverage/**"],
+  },
+  ...compat.extends("next/core-web-vitals"),
+];
 
 export default eslintConfig;
