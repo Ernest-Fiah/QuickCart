@@ -1,6 +1,6 @@
 
 'use client'
-import React from "react";
+import React, { useState } from "react";
 import { parseCartKey } from "@/lib/sizing.mjs"; 
 import { assets } from "@/assets/assets"; 
 import OrderSummary from "@/components/OrderSummary"; 
@@ -10,7 +10,21 @@ import { useAppContext } from "@/context/AppContext";
  
 const Cart = () => { 
  
-  const { products, router, cartItems, addToCart, updateCartQuantity, getCartCount, currency } = useAppContext(); 
+  const { products, router, cartItems, addToCart, updateCartQuantity, clearCart, getCartCount, currency } = useAppContext();
+  const [confirmClear, setConfirmClear] = useState(false);
+  const [clearing, setClearing] = useState(false);
+  const hasCartItems = Object.keys(cartItems || {}).length > 0;
+
+  const handleClearCart = async () => {
+    if (clearing) return;
+    setClearing(true);
+    try {
+      const success = await clearCart();
+      if (success) setConfirmClear(false);
+    } finally {
+      setClearing(false);
+    }
+  }; 
  
   return ( 
     <> 
@@ -21,8 +35,46 @@ const Cart = () => {
             <p className="text-2xl md:text-3xl text-gray-500"> 
               Your <span className="font-medium text-black">Cart</span> 
             </p> 
-            <p className="text-lg md:text-xl text-gray-500/80">{getCartCount()} Items</p> 
-          </div> 
+            <div className="flex flex-wrap items-center justify-end gap-3">
+              <p className="text-sm md:text-lg text-gray-500/80">{getCartCount()} Items</p>
+              {hasCartItems && (
+                <button
+                  type="button"
+                  onClick={() => setConfirmClear((open) => !open)}
+                  disabled={clearing}
+                  className="rounded-full border border-[#bca7a8] px-4 py-2 text-xs font-semibold text-[#7c273d] transition hover:bg-[#fbf5f6] disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Clear cart
+                </button>
+              )}
+            </div>
+          </div>
+          {hasCartItems && confirmClear && (
+            <div role="group" aria-label="Confirm clear cart" className="mb-6 rounded-lg border border-[#ead6d8] bg-[#fffaf9] p-4 sm:p-5">
+              <p className="text-sm font-semibold text-[#3a2a2e]">Remove everything from your cart?</p>
+              <p className="mt-1 text-xs leading-5 text-[#76686a]">
+                This removes all items and selected sizes from your saved cart. Your previous orders will not be affected.
+              </p>
+              <div className="mt-4 flex flex-wrap gap-3">
+                <button
+                  type="button"
+                  onClick={handleClearCart}
+                  disabled={clearing}
+                  className="rounded-full bg-[#7c273d] px-5 py-2.5 text-xs font-semibold text-white hover:bg-[#652032] disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {clearing ? "Clearing..." : "Yes, clear my cart"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setConfirmClear(false)}
+                  disabled={clearing}
+                  className="rounded-full border border-[#d8cfd0] bg-white px-5 py-2.5 text-xs font-medium text-[#3d3435] hover:bg-[#f7f2f2] disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )} 
           <div className="overflow-x-auto"> 
             <table className="min-w-full table-auto"> 
               <thead className="text-left"> 
@@ -73,7 +125,7 @@ const Cart = () => {
                           {size && <p className="text-xs font-medium">Size: {size}</p>} 
                           <button 
                             className="text-xs text-black mt-1" 
-                            onClick={() => updateCartQuantity(product._id, 0)} 
+                            onClick={() => updateCartQuantity(itemId, 0)} 
                           > 
                             Remove 
                           </button> 
